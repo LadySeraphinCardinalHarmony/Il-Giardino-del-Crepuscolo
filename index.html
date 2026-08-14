@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tavolo — schede e sessioni di gioco</title>
+<meta name="description" content="Schede personaggio, dadi e gestione della sessione. Tutto in un file, i dati restano tuoi.">
+<meta name="theme-color" content="#17111F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 29 9v14L16 30 3 23V9z' fill='%23211829' stroke='%23C9A227' stroke-width='2'/%3E%3Cpath d='M16 2v28M3 9l13 7 13-7' stroke='%23C9A227' stroke-width='1.5' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#17111F; --panel:#211829; --panel-2:#2B2036; --line:#3B2E48;
+  --ink:#EFE7F4; --ink-dim:#A796B4; --ink-faint:#75647F;
+  --gold:#C9A227; --gold-soft:#E0C158; --jade:#6FA88B; --rose:#C2506A;
+  --r:14px; --r-s:9px;
+  --display:'Spectral',Georgia,serif;
+  --body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
+  overscroll-behavior-y:none;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 60% at 50% -10%,rgba(201,162,39,.10),transparent 60%);
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+input,select,textarea{
+  background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
+  border-radius:var(--r-s);padding:9px 11px;width:100%;outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.15)}
+textarea{resize:vertical;min-height:80px;line-height:1.5}
+:focus-visible{outline:2px solid var(--gold-soft);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;letter-spacing:-.01em}
+
+/* ---------- shell ---------- */
+#app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100%}
+.topbar{
+  position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;
+  padding:10px 14px;background:rgba(23,17,31,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.brand{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:.02em}
+.brand small{font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:.18em;display:block;margin-top:-3px;text-transform:uppercase}
+.topbar .grow{flex:1}
+.iconbtn{
+  width:38px;height:38px;border-radius:10px;display:grid;place-items:center;
+  border:1px solid var(--line);background:var(--panel);font-size:16px;flex:none;
+}
+.iconbtn:active{background:var(--panel-2)}
+main{flex:1;padding:14px 14px 96px;transition:none;max-width:900px;width:100%;margin:0 auto}
+body.hasdice main{padding-bottom:158px}
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:45;display:grid;grid-template-columns:repeat(5,1fr);
+  background:rgba(33,24,41,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  padding-bottom:var(--safe-b);
+}
+.tabs button{padding:9px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-faint);font-size:10px;letter-spacing:.03em}
+.tabs button .g{font-size:18px;line-height:1}
+.tabs button[aria-selected=true]{color:var(--gold-soft)}
+.tabs button[aria-selected=true] .g{filter:drop-shadow(0 0 8px rgba(201,162,39,.5))}
+
+/* ---------- pieces ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card>h2{font-size:16px;margin-bottom:10px}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint)}
+.row{display:flex;gap:8px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.muted{color:var(--ink-dim)}
+.faint{color:var(--ink-faint);font-size:13px}
+.btn{
+  border:1px solid var(--line);background:var(--panel-2);border-radius:var(--r-s);
+  padding:9px 14px;font-weight:600;font-size:14px;white-space:nowrap;
+}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(180deg,var(--gold-soft),var(--gold));color:#241B08;border-color:#8E7318}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--rose);border-color:rgba(194,80,106,.4)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.pill{
+  font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:99px;
+  border:1px solid var(--line);color:var(--ink-dim);background:var(--panel-2)
+}
+.empty{text-align:center;padding:34px 16px;color:var(--ink-faint)}
+.empty .g{font-size:36px;display:block;margin-bottom:8px;opacity:.6}
+hr.sep{border:0;border-top:1px solid var(--line);margin:14px 0}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+label.f{display:block}
+label.f>span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px}
+
+/* ---------- character list ---------- */
+.charcard{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px;margin-bottom:10px;width:100%;text-align:left}
+.charcard .ava{width:46px;height:46px;border-radius:10px;background:var(--panel-2);display:grid;place-items:center;font-family:var(--display);font-size:19px;color:var(--gold);flex:none;overflow:hidden;border:1px solid var(--line)}
+.charcard .ava img{width:100%;height:100%;object-fit:cover}
+.charcard b{font-family:var(--display);font-size:17px;font-weight:600;display:block}
+
+/* ---------- sheet ---------- */
+.section{border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;background:var(--panel);overflow:hidden}
+.section>summary{
+  list-style:none;cursor:pointer;padding:11px 14px;display:flex;align-items:center;gap:9px;
+  font-family:var(--display);font-size:15px;font-weight:600;background:var(--panel-2);
+}
+.section>summary::-webkit-details-marker{display:none}
+.section>summary::before{content:'▸';color:var(--gold);font-size:12px;transition:transform .18s}
+.section[open]>summary::before{transform:rotate(90deg)}
+.section .body{padding:12px}
+.field{margin-bottom:10px}
+.field:last-child{margin-bottom:0}
+.rollable{
+  position:relative;display:flex;align-items:center;gap:8px;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:var(--r-s);padding:8px 10px;
+}
+.rollable .val{font-family:var(--mono);font-weight:700;font-size:17px;min-width:38px;text-align:center;color:var(--gold-soft)}
+.statbox{
+  background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-s);
+  padding:9px 6px;text-align:center;position:relative;
+}
+.statbox .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+.statbox input{background:transparent;border:0;text-align:center;font-family:var(--mono);font-size:20px;font-weight:700;padding:2px 0}
+.statbox .mod{
+  font-family:var(--mono);font-size:13px;font-weight:700;color:#241B08;background:var(--gold);
+  border-radius:99px;padding:1px 9px;display:inline-block;margin-top:2px;
+}
+.pips{display:flex;gap:5px;flex-wrap:wrap}
+.pip{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel-2)}
+.pip.on{background:var(--gold);border-color:var(--gold-soft)}
+.tracker .bar{height:9px;border-radius:99px;background:var(--panel-2);border:1px solid var(--line);overflow:hidden;margin-top:6px}
+.tracker .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--rose),var(--gold))}
+table.list{width:100%;border-collapse:collapse;font-size:13px}
+table.list th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);text-align:left;padding:0 5px 5px}
+table.list td{padding:2px}
+table.list input{padding:6px 7px;font-size:13px}
+
+/* ---------- dice ---------- */
+.dicebar{
+  position:fixed;left:0;right:0;bottom:calc(56px + var(--safe-b));z-index:44;
+  background:rgba(33,24,41,.97);border-top:1px solid var(--line);padding:8px 10px;
+  display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+}
+.dicebar::-webkit-scrollbar{display:none}
+.dchip{font-family:var(--mono);font-size:12px;padding:7px 11px;border-radius:99px;border:1px solid var(--line);background:var(--panel);flex:none}
+.rolltoast{
+  position:fixed;left:12px;right:12px;bottom:calc(112px + var(--safe-b));z-index:60;
+  background:var(--panel-2);border:1px solid var(--gold);border-radius:var(--r);padding:12px 14px;
+  box-shadow:0 14px 40px rgba(0,0,0,.55);animation:pop .22s ease-out;max-width:420px;margin:0 auto;
+}
+@keyframes pop{from{transform:translateY(12px) scale(.97);opacity:0}}
+.rolltoast .tot{font-family:var(--mono);font-size:34px;font-weight:700;line-height:1;color:var(--gold-soft)}
+.rolltoast.crit{border-color:var(--jade)} .rolltoast.crit .tot{color:var(--jade)}
+.rolltoast.fumble{border-color:var(--rose)} .rolltoast.fumble .tot{color:var(--rose)}
+.rolltoast .bk{font-family:var(--mono);font-size:12px;color:var(--ink-dim);word-break:break-word}
+.die{display:inline-block;padding:1px 6px;border-radius:5px;background:var(--panel);border:1px solid var(--line);margin:1px}
+.die.max{border-color:var(--jade);color:var(--jade)} .die.min{border-color:var(--rose);color:var(--rose)}
+.die.drop{opacity:.35;text-decoration:line-through}
+
+/* ---------- session ---------- */
+.combatant{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--panel-2);margin-bottom:8px}
+.combatant.active{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.combatant.down{opacity:.45}
+.init{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--gold-soft);min-width:32px;text-align:center}
+.log{font-family:var(--mono);font-size:12px;max-height:300px;overflow-y:auto}
+.log div{padding:5px 0;border-bottom:1px solid var(--line);color:var(--ink-dim)}
+.log b{color:var(--ink)}
+.log .t{color:var(--ink-faint);font-size:10px}
+
+/* ---------- modal ---------- */
+.scrim{position:fixed;inset:0;z-index:80;background:rgba(10,6,14,.7);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;padding:16px 14px calc(20px + var(--safe-b));animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:0}}
+.modal h2{font-size:18px;margin-bottom:4px}
+.att{display:flex;gap:10px;align-items:center;padding:9px;border:1px solid var(--line);border-radius:var(--r-s);margin-bottom:7px;background:var(--panel-2)}
+.att .th{width:40px;height:40px;border-radius:7px;background:var(--panel);display:grid;place-items:center;overflow:hidden;flex:none;font-size:17px}
+.att .th img{width:100%;height:100%;object-fit:cover}
+.drop{border:1.5px dashed var(--line);border-radius:var(--r);padding:20px;text-align:center;color:var(--ink-faint)}
+.drop.over{border-color:var(--gold);color:var(--gold-soft);background:rgba(201,162,39,.06)}
+.busy{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(120px + var(--safe-b));z-index:90;background:var(--panel-2);border:1px solid var(--line);border-radius:99px;padding:9px 16px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.ask{white-space:pre-wrap;line-height:1.55}
+@media (min-width:760px){
+  main{padding:20px 20px 130px}
+  .g2,.g3,.g4{gap:12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">Tavolo<small id="folderLabel">nessuna cartella</small></div>
+    <div class="grow"></div>
+    <button class="iconbtn" id="btnDice" title="Tira i dadi">🎲</button>
+    <button class="iconbtn" id="btnFolder" title="Cartella dati">📁</button>
+  </header>
+  <main id="view"></main>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+<div id="layers"></div>
+<script>
+"use strict";
+/* =========================================================================
+   TAVOLO — gestore schede personaggio e sessioni di gioco
+   File unico. Nessuna build. Funziona da GitHub Pages o in locale.
+   ========================================================================= */
+
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const uid = (p='id')=>p+'_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const esc = s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const nowISO=()=>new Date().toISOString();
+const hhmm = d=>new Date(d).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+const debounce=(fn,ms=400)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
+
+function toast(msg,ms=2200){
+  const el=document.createElement('div');el.className='toast';el.textContent=msg;
+  $('#layers').appendChild(el);setTimeout(()=>el.remove(),ms);
+}
+
+/* ---------------------------------------------------------------- IndexedDB
+   Usato per: (a) ricordare la cartella scelta, (b) archivio di riserva
+   quando il browser non supporta l'accesso alle cartelle. ----------------- */
+const IDB = (()=>{
+  let dbp;
+  const open=()=>dbp||(dbp=new Promise((res,rej)=>{
+    const r=indexedDB.open('tavolo',1);
+    r.onupgradeneeded=()=>{const d=r.result;
+      if(!d.objectStoreNames.contains('kv')) d.createObjectStore('kv');
+      if(!d.objectStoreNames.contains('files')) d.createObjectStore('files');
+    };
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+  }));
+  const tx=async(store,mode,fn)=>{const d=await open();return new Promise((res,rej)=>{
+    const t=d.transaction(store,mode),s=t.objectStore(store);let out;
+    out=fn(s);
+    t.oncomplete=()=>res(out&&typeof out==='object'&&'result' in out?out.result:out);
+    t.onerror=()=>rej(t.error);
+  })};
+  return {
+    get:(s,k)=>tx(s,'readonly',st=>st.get(k)),
+    set:(s,k,v)=>tx(s,'readwrite',st=>st.put(v,k)),
+    del:(s,k)=>tx(s,'readwrite',st=>st.delete(k)),
+    keys:(s)=>tx(s,'readonly',st=>st.getAllKeys()),
+  };
+})();
+
+/* ------------------------------------------------------------------ Storage
+   Due implementazioni con la stessa interfaccia:
+   FolderStore  → cartella reale sul disco (File System Access API)
+   LocalStore   → archivio interno del browser (riserva)                    */
+
+const Paths = {
+  config:'config.json',
+  schema:id=>`schemi/${id}.json`,
+  char:id=>`personaggi/${id}.json`,
+  rules:id=>`regole/${id}.json`,
+  session:id=>`sessioni/${id}.json`,
+  att:(cid,name)=>`allegati/${cid}/${name}`,
+};
+
+class FolderStore{
+  constructor(root){this.root=root;this.kind='cartella'}
+  async _dir(path,create=false){
+    const parts=path.split('/').slice(0,-1);let h=this.root;
+    for(const p of parts) h=await h.getDirectoryHandle(p,{create});
+    return h;
+  }
+  async _file(path,create=false){
+    const d=await this._dir(path,create);
+    return d.getFileHandle(path.split('/').pop(),{create});
+  }
+  async readBlob(path){try{const f=await this._file(path);return await f.getFile()}catch{return null}}
+  async readText(path){const b=await this.readBlob(path);return b?await b.text():null}
+  async writeBlob(path,blob){
+    const f=await this._file(path,true);const w=await f.createWritable();
+    await w.write(blob);await w.close();
+  }
+  writeText(path,text){return this.writeBlob(path,new Blob([text],{type:'application/json'}))}
+  async remove(path){
+    try{const d=await this._dir(path);await d.removeEntry(path.split('/').pop())}catch(e){}
+  }
+  async list(dir){
+    try{
+      let h=this.root;for(const p of dir.split('/').filter(Boolean)) h=await h.getDirectoryHandle(p);
+      const out=[];for await(const [name,ent] of h.entries()) if(ent.kind==='file') out.push(dir.replace(/\/$/,'')+'/'+name);
+      return out;
+    }catch{return []}
+  }
+}
+
+class LocalStore{
+  constructor(){this.kind='browser'}
+  async readBlob(p){
+    const v=await IDB.get('files',p);
+    if(v==null) return null;
+    return typeof v==='string' ? new Blob([v],{type:'application/json'}) : v;
+  }
+  async readText(p){
+    const v=await IDB.get('files',p);
+    if(v==null) return null;
+    if(typeof v==='string') return v;
+    if(typeof v.text==='function') return v.text();
+    if(v instanceof ArrayBuffer||ArrayBuffer.isView(v)) return new TextDecoder().decode(v);
+    return null;
+  }
+  async writeBlob(p,b){return IDB.set('files',p,b)}
+  writeText(p,t){return IDB.set('files',p,t)}
+  async remove(p){return IDB.del('files',p)}
+  async list(dir){const k=await IDB.keys('files');const d=dir.replace(/\/$/,'')+'/';
+    return k.filter(x=>x.startsWith(d)&&!x.slice(d.length).includes('/'))}
+}
+
+const DB = {
+  store:null,
+  supportsFolder: typeof window.showDirectoryPicker==='function',
+  async init(){
+    if(this.supportsFolder){
+      const h=await IDB.get('kv','root').catch(()=>null);
+      if(h){
+        let perm=await h.queryPermission({mode:'readwrite'});
+        if(perm==='granted'){this.store=new FolderStore(h);this.rootName=h.name;return}
+        this.pending=h; // serve un gesto dell'utente per riottenere il permesso
+      }
+    }
+    this.store=new LocalStore();
+  },
+  async resume(){
+    if(!this.pending) return false;
+    const p=await this.pending.requestPermission({mode:'readwrite'});
+    if(p==='granted'){this.store=new FolderStore(this.pending);this.rootName=this.pending.name;this.pending=null;return true}
+    return false;
+  },
+  async chooseFolder(){
+    if(!this.supportsFolder){toast('Questo browser non apre cartelle: uso l\u2019archivio interno. Con Chrome o Edge puoi scegliere una cartella.');return false}
+    const h=await window.showDirectoryPicker({mode:'readwrite',id:'tavolo'});
+    await h.requestPermission({mode:'readwrite'});
+    await IDB.set('kv','root',h);
+    this.store=new FolderStore(h);this.rootName=h.name;this.pending=null;
+    return true;
+  },
+  async readJSON(p){const t=await this.store.readText(p);try{return t?JSON.parse(t):null}catch{return null}},
+  writeJSON(p,o){return this.store.writeText(p,JSON.stringify(o,null,2))},
+  list(d){return this.store.list(d)},
+  remove(p){return this.store.remove(p)},
+  readBlob(p){return this.store.readBlob(p)},
+  writeBlob(p,b){return this.store.writeBlob(p,b)},
+};
+
+/* --------------------------------------------------------------- Stato app */
+const S = {
+  tab:'personaggi',
+  chars:[],        // metadati leggeri {id,name,schemaId,portrait,updatedAt}
+  schemas:{},      // id -> schema
+  char:null,       // personaggio aperto
+  session:null,    // sessione in corso
+  rules:[],        // indici regole {id,name,chunks}
+  cfg:{apiKey:'',model:'claude-sonnet-5',lastChar:null,favDice:['1d20','1d20 van','2d6','1d8','1d6','1d100']},
+};
+
+/* ====================================================== Formule e calcoli ==
+   Le formule sono espressioni matematiche che leggono altri campi per id.
+   Es: floor((for-10)/2)   ·   10 + des_mod + armatura   ·   liv + comp     */
+const FN = {
+  floor:Math.floor, ceil:Math.ceil, round:Math.round, abs:Math.abs,
+  min:Math.min, max:Math.max, sqrt:Math.sqrt,
+  mod:v=>Math.floor((Number(v||0)-10)/2),
+  half:v=>Math.floor(Number(v||0)/2),
+  se:(c,a,b)=>c?a:b,
+};
+/* Nelle formule gli identificatori diventano letture dello scope: così anche
+   un campo che si chiama "for" o "classe" non rompe niente. */
+const SAFE = /^[A-Za-z0-9_+\-*/%().,<>=!&|?:'"\s]*$/;
+
+function evalExpr(expr, scope){
+  if(expr==null||expr==='') return 0;
+  const s=String(expr);
+  if(!SAFE.test(s)) return 0;
+  try{
+    const code=s.replace(/'[^']*'|"[^"]*"|[A-Za-z_][A-Za-z0-9_]*/g, m=>{
+      if(m[0]==='"'||m[0]==="'") return m;
+      if(Object.prototype.hasOwnProperty.call(FN,m)) return '__f.'+m;
+      if(m==='true'||m==='false'||m==='null') return m;
+      return '__v('+JSON.stringify(m)+')';
+    });
+    const read=k=>{
+      const x=scope[k];
+      if(x===undefined||x===null||x==='') return 0;
+      if(typeof x==='boolean') return x?1:0;
+      return (typeof x==='string'&&isNaN(x)) ? x : Number(x);
+    };
+    const v=new Function('__f','__v','return ('+code+')')(FN,read);
+    if(typeof v==='boolean') return v?1:0;
+    return (typeof v==='number'&&isFinite(v)) ? v : (v??0);
+  }catch(e){ return 0 }
+}
+
+/* Calcola tutti i campi derivati di un personaggio (3 passate per le catene) */
+function computeAll(char, schema){
+  const sc={};
+  const walk=fn=>schema.sections.forEach(s=>s.fields.forEach(fn));
+  walk(f=>{ if(['number','stat','text','select','check'].includes(f.type)) sc[f.id]=char.values[f.id]??f.default??(f.type==='check'?false:(f.type==='number'||f.type==='stat'?0:'')); });
+  walk(f=>{ if(f.type==='tracker'){const t=char.values[f.id]||{};sc[f.id]=t.cur??0;sc[f.id+'_max']=t.max??0} });
+  walk(f=>{ if(f.type==='pips') sc[f.id]=Number(char.values[f.id]||0) });
+  walk(f=>{ if(f.type==='percent') sc[f.id]=Number(char.values[f.id]??f.default??0) });
+  walk(f=>{ if(f.type==='stat') sc[f.id+'_mod']=evalExpr(f.modExpr||'mod('+f.id+')',sc) });
+  for(let i=0;i<3;i++){
+    walk(f=>{ if(f.type==='formula') sc[f.id]=evalExpr(f.expr,sc) });
+    walk(f=>{ if(f.type==='skill') sc[f.id]=skillValue(f,char,schema,sc) });
+  }
+  return sc;
+}
+function skillValue(f,char,schema,sc){
+  const base = f.attr ? (sc[f.attr+'_mod']??0) : 0;
+  const exprs= schema.rankExprs || ['0', schema.profField||'0', (schema.profField||'0')+'*2'];
+  const rank = clamp(Number((char.values[f.id]||{}).rank||0),0,exprs.length-1);
+  const extra= Number((char.values[f.id]||{}).extra||0);
+  return base + evalExpr(exprs[rank],sc) + extra;
+}
+
+/* ============================================================= Motore dadi */
+function rollDice(expr, scope={}){
+  let e=String(expr||'').trim().toLowerCase();
+  e=e.replace(/\{([a-z0-9_]+)\}/gi,(_,k)=>{const v=scope[k];return (v===undefined||v===null||v==='')?0:v});
+  e=e.replace(/\bvan\b|\bvantaggio\b/g,'').replace(/\bsvan\b|\bsvantaggio\b/g,'');
+  const adv = /\bvan\b|\bvantaggio\b/.test(String(expr).toLowerCase());
+  const dis = /\bsvan\b|\bsvantaggio\b/.test(String(expr).toLowerCase());
+  if(adv) e=e.replace(/(^|[^0-9])1?d20/,'$12d20kh1');
+  if(dis) e=e.replace(/(^|[^0-9])1?d20/,'$12d20kl1');
+  const terms=e.replace(/\s+/g,'').replace(/-/g,'+-').split('+').filter(Boolean);
+  let total=0;const parts=[];let d20=null,d20n=0;
+  for(let t of terms){
+    let sign=1;if(t[0]==='-'){sign=-1;t=t.slice(1)}
+    const m=t.match(/^(\d*)d(\d+)(?:(kh|kl|dh|dl)(\d+))?$/);
+    if(m){
+      const n=clamp(parseInt(m[1]||'1'),1,200),faces=clamp(parseInt(m[2]),2,1000);
+      let rolls=Array.from({length:n},()=>1+Math.floor(Math.random()*faces));
+      const keep=new Array(n).fill(true);
+      if(m[3]){
+        const k=clamp(parseInt(m[4]||'1'),0,n);
+        const order=rolls.map((v,i)=>[v,i]).sort((a,b)=>a[0]-b[0]);
+        const drop = m[3]==='kh' ? order.slice(0,n-k)
+                   : m[3]==='kl' ? order.slice(k)
+                   : m[3]==='dl' ? order.slice(0,k) : order.slice(n-k);
+        drop.forEach(([,i])=>keep[i]=false);
+      }
+      let sum=0;const html=rolls.map((v,i)=>{
+        if(keep[i]) sum+=v;
+        const cls=[!keep[i]&&'drop',keep[i]&&v===faces&&'max',keep[i]&&v===1&&'min'].filter(Boolean).join(' ');
+        return `<span class="die ${cls}">${v}</span>`;
+      }).join('');
+      if(faces===20){ const kept=rolls.filter((_,i)=>keep[i]); d20=kept[0]; d20n++; }
+      total+=sign*sum;
+      parts.push(`${sign<0?'−':''}${n}d${faces} ${html}`);
+    }else{
+      const v=Number(t)||0;total+=sign*v;
+      if(v) parts.push(`<span class="die">${sign<0?'−':'+'}${v}</span>`);
+    }
+  }
+  return {total,html:parts.join(' '),expr:String(expr),
+          crit:d20n===1&&d20===20, fumble:d20n===1&&d20===1};
+}
+
+function showRoll(label,res,extra=''){
+  $$('.rolltoast').forEach(x=>x.remove());
+  const el=document.createElement('div');
+  el.className='rolltoast'+(res.crit?' crit':res.fumble?' fumble':'');
+  el.innerHTML=`<div class="row"><div class="grow">
+      <div class="eyebrow">${esc(label)}${res.crit?' · critico':res.fumble?' · fallimento critico':''}</div>
+      <div class="bk">${res.html||''}</div>${extra}
+    </div><div class="tot">${res.total}</div></div>`;
+  $('#layers').appendChild(el);
+  el.onclick=()=>el.remove();
+  setTimeout(()=>el.remove(),6000);
+  logRoll(label,res);
+}
+function logRoll(label,res){
+  if(!S.session) return;
+  S.session.log.unshift({t:nowISO(),k:'dado',txt:`${label}: ${res.total}`,d:res.expr});
+  saveSession();
+  if(S.tab==='sessione') render();
+}
+
+/* ================================================== Schemi di gioco inclusi
+   Uno schema descrive la scheda: sezioni, campi, formule, gradi di
+   competenza. Tutto qui dentro è modificabile dall'editor schema.          */
+const F=(id,label,type,o={})=>({id,label,type,...o});
+const sk=(id,label,attr)=>({id,label,type:'skill',attr});
+
+const PRESETS = {
+
+dnd5e:{ id:'dnd5e', name:'D&D 5e', profField:'comp',
+  rankExprs:['0','comp','comp*2'], rankLabels:['—','Competente','Esperto'],
+  sections:[
+    {id:'identita',title:'Identità',layout:'g2',fields:[
+      F('classe','Classe','text'),F('liv','Livello','number',{default:1}),
+      F('razza','Stirpe','text'),F('background','Background','text'),
+      F('allineamento','Allineamento','text'),F('px','Punti esperienza','number',{default:0}),
+    ]},
+    {id:'car',title:'Caratteristiche',layout:'g3',fields:[
+      F('forza','Forza','stat',{default:10,roll:'1d20+{forza_mod}'}),
+      F('des','Destrezza','stat',{default:10,roll:'1d20+{des_mod}'}),
+      F('cos','Costituzione','stat',{default:10,roll:'1d20+{cos_mod}'}),
+      F('int','Intelligenza','stat',{default:10,roll:'1d20+{int_mod}'}),
+      F('sag','Saggezza','stat',{default:10,roll:'1d20+{sag_mod}'}),
+      F('car','Carisma','stat',{default:10,roll:'1d20+{car_mod}'}),
+    ]},
+    {id:'nucleo',title:'Valori di gioco',layout:'g3',fields:[
+      F('comp','Competenza','formula',{expr:'2+floor((liv-1)/4)'}),
+      F('ca','Classe armatura','number',{default:10}),
+      F('iniz','Iniziativa','formula',{expr:'des_mod',roll:'1d20+{iniz}'}),
+      F('vel','Velocità','number',{default:9}),
+      F('perc','Percezione passiva','formula',{expr:'10+percezione'}),
+      F('ispirazione','Ispirazione','check'),
+    ]},
+    {id:'pf',title:'Punti ferita',layout:'g2',fields:[
+      F('pf','Punti ferita','tracker',{default:{cur:10,max:10}}),
+      F('pftemp','PF temporanei','number',{default:0}),
+      F('dv','Dadi vita','pips',{max:10}),
+      F('morte','Tiri salvezza contro morte','pips',{max:6}),
+    ]},
+    {id:'ts',title:'Tiri salvezza',layout:'stack',fields:[
+      sk('ts_forza','Forza','forza'),sk('ts_des','Destrezza','des'),sk('ts_cos','Costituzione','cos'),
+      sk('ts_int','Intelligenza','int'),sk('ts_sag','Saggezza','sag'),sk('ts_car','Carisma','car'),
+    ]},
+    {id:'abilita',title:'Abilità',layout:'stack',fields:[
+      sk('acrobazia','Acrobazia','des'),sk('addestrare','Addestrare animali','sag'),sk('arcano','Arcano','int'),
+      sk('atletica','Atletica','forza'),sk('furtivita','Furtività','des'),sk('indagare','Indagare','int'),
+      sk('inganno','Inganno','car'),sk('intimidire','Intimidire','car'),sk('intrattenere','Intrattenere','car'),
+      sk('intuizione','Intuizione','sag'),sk('medicina','Medicina','sag'),sk('natura','Natura','int'),
+      sk('percezione','Percezione','sag'),sk('persuasione','Persuasione','car'),sk('rapidita','Rapidità di mano','des'),
+      sk('religione','Religione','int'),sk('sopravvivenza','Sopravvivenza','sag'),sk('storia','Storia','int'),
+    ]},
+    {id:'attacchi',title:'Attacchi',layout:'stack',fields:[
+      F('atk','Armi e attacchi','list',{cols:[
+        {id:'nome',label:'Nome'},{id:'bonus',label:'Tiro',roll:'1d20+{v}'},
+        {id:'danni',label:'Danni',roll:'{v}'},{id:'note',label:'Note'}]}),
+    ]},
+    {id:'magia',title:'Magia',layout:'stack',fields:[
+      F('caratmagia','Caratteristica da incanto','select',{options:['int','sag','car'],default:'int'}),
+      F('cdmagia','CD tiro salvezza','formula',{expr:'8+comp+se(caratmagia=="int",int_mod,se(caratmagia=="sag",sag_mod,car_mod))'}),
+      F('atkmagia','Bonus di attacco','formula',{expr:'comp+se(caratmagia=="int",int_mod,se(caratmagia=="sag",sag_mod,car_mod))',roll:'1d20+{atkmagia}'}),
+      F('slot1','Slot 1°','tracker'),F('slot2','Slot 2°','tracker'),F('slot3','Slot 3°','tracker'),
+      F('slot4','Slot 4°','tracker'),F('slot5','Slot 5°','tracker'),F('slot6','Slot 6°+','tracker'),
+      F('incantesimi','Incantesimi noti','longtext'),
+    ]},
+    {id:'equip',title:'Equipaggiamento',layout:'stack',fields:[
+      F('monete','Monete','list',{cols:[{id:'tipo',label:'Tipo'},{id:'q',label:'Quantità'}]}),
+      F('zaino','Zaino','longtext'),
+    ]},
+    {id:'tratti',title:'Tratti e privilegi',layout:'stack',fields:[
+      F('privilegi','Privilegi di classe','longtext'),
+      F('talenti','Talenti','longtext'),
+      F('lingue','Lingue e competenze','longtext'),
+      F('personalita','Personalità, ideali, legami, difetti','longtext'),
+    ]},
+  ]},
+
+pf2e:{ id:'pf2e', name:'Pathfinder 2e', profField:'liv',
+  rankExprs:['0','liv+2','liv+4','liv+6','liv+8'],
+  rankLabels:['Impreparato','Addestrato','Esperto','Maestro','Leggendario'],
+  sections:[
+    {id:'identita',title:'Identità',layout:'g2',fields:[
+      F('ancestria','Ascendenza','text'),F('classe','Classe','text'),
+      F('liv','Livello','number',{default:1}),F('background','Background','text'),
+    ]},
+    {id:'car',title:'Caratteristiche',layout:'g3',fields:[
+      F('forza','Forza','stat',{default:10}),F('des','Destrezza','stat',{default:10}),
+      F('cos','Costituzione','stat',{default:10}),F('int','Intelligenza','stat',{default:10}),
+      F('sag','Saggezza','stat',{default:10}),F('car','Carisma','stat',{default:10}),
+    ]},
+    {id:'difese',title:'Difese',layout:'g2',fields:[
+      F('pf','Punti ferita','tracker'),F('ca','Classe armatura','number',{default:10}),
+      sk('tempra','Tempra','cos'),sk('riflessi','Riflessi','des'),sk('volonta','Volontà','sag'),
+      F('percezione_v','Percezione','skill',{attr:'sag'}),F('eroismo','Punti eroe','pips',{max:3}),
+    ]},
+    {id:'abilita',title:'Abilità',layout:'stack',fields:[
+      sk('acrobazia','Acrobazia','des'),sk('arcano','Arcano','int'),sk('atletica','Atletica','forza'),
+      sk('artigianato','Artigianato','int'),sk('inganno','Inganno','car'),sk('diplomazia','Diplomazia','car'),
+      sk('intimidazione','Intimidazione','car'),sk('medicina','Medicina','sag'),sk('natura','Natura','sag'),
+      sk('occultismo','Occultismo','int'),sk('spettacolo','Spettacolo','car'),sk('religione','Religione','sag'),
+      sk('societa','Società','int'),sk('furtivita','Furtività','des'),sk('sopravvivenza','Sopravvivenza','sag'),
+      sk('furto','Furto','des'),
+    ]},
+    {id:'azioni',title:'Azioni e incantesimi',layout:'stack',fields:[
+      F('attacchi','Attacchi','list',{cols:[{id:'nome',label:'Nome'},{id:'bonus',label:'Tiro',roll:'1d20+{v}'},{id:'danni',label:'Danni',roll:'{v}'}]}),
+      F('talenti','Talenti','longtext'),F('incantesimi','Incantesimi','longtext'),
+    ]},
+  ]},
+
+coc7e:{ id:'coc7e', name:'Il Richiamo di Cthulhu 7e', profField:'', dice:'d100',
+  sections:[
+    {id:'investigatore',title:'Investigatore',layout:'g2',fields:[
+      F('professione','Professione','text'),F('eta','Età','number',{default:30}),
+      F('residenza','Residenza','text'),F('natale','Luogo natale','text'),
+    ]},
+    {id:'car',title:'Caratteristiche',layout:'g3',fields:[
+      F('forza','FOR','percent',{default:50}),F('cos','COS','percent',{default:50}),
+      F('tag','TAG','percent',{default:50}),F('des','DES','percent',{default:50}),
+      F('app','APP','percent',{default:50}),F('int','INT','percent',{default:50}),
+      F('pot','POT','percent',{default:50}),F('edu','EDU','percent',{default:60}),
+    ]},
+    {id:'stato',title:'Stato',layout:'g2',fields:[
+      F('pf','Punti ferita','tracker'),F('sanita','Sanità mentale','tracker'),
+      F('magia','Punti magia','tracker'),F('fortuna','Fortuna','percent',{default:50}),
+      F('ferita','Ferita grave','check'),F('follia','Follia temporanea','check'),
+    ]},
+    {id:'abilita',title:'Abilità',layout:'g2',fields:[
+      F('scavalcare','Scavalcare','percent',{default:20}),F('ascoltare','Ascoltare','percent',{default:20}),
+      F('nascondersi','Nascondersi','percent',{default:20}),F('scassinare','Scassinare','percent',{default:1}),
+      F('storia','Storia','percent',{default:5}),F('intimidire','Intimidire','percent',{default:15}),
+      F('psicologia','Psicologia','percent',{default:10}),F('trovareoggetti','Trovare oggetti','percent',{default:25}),
+      F('cultura','Cultura occulta','percent',{default:5}),F('mitidicthulhu','Miti di Cthulhu','percent',{default:0}),
+      F('primosoccorso','Primo soccorso','percent',{default:30}),F('persuasione','Persuasione','percent',{default:10}),
+      F('schivare','Schivare','percent',{default:25}),F('combattere','Combattere (rissa)','percent',{default:25}),
+      F('armidafuoco','Armi da fuoco','percent',{default:20}),F('guidare','Guidare auto','percent',{default:20}),
+    ]},
+    {id:'note',title:'Diario',layout:'stack',fields:[
+      F('equip','Equipaggiamento','longtext'),F('legami','Legami','longtext'),F('diario','Note di gioco','longtext'),
+    ]},
+  ]},
+
+vampiri5:{ id:'vampiri5', name:'Vampiri: la Masquerade 5e', profField:'',
+  sections:[
+    {id:'identita',title:'Identità',layout:'g2',fields:[
+      F('clan','Clan','text'),F('generazione','Generazione','number',{default:13}),
+      F('sire','Sire','text'),F('ambizione','Ambizione','text'),
+      F('predatore','Tipo di predatore','text'),F('desiderio','Desiderio','text'),
+    ]},
+    {id:'attributi',title:'Attributi',layout:'g3',fields:[
+      F('forza','Forza','pips',{max:5}),F('destrezza','Destrezza','pips',{max:5}),F('costituzione','Costituzione','pips',{max:5}),
+      F('carisma','Carisma','pips',{max:5}),F('manipolazione','Manipolazione','pips',{max:5}),F('autocontrollo','Autocontrollo','pips',{max:5}),
+      F('intelligenza','Intelligenza','pips',{max:5}),F('prontezza','Prontezza','pips',{max:5}),F('fermezza','Fermezza','pips',{max:5}),
+    ]},
+    {id:'stato',title:'Stato',layout:'g2',fields:[
+      F('salute','Salute','tracker'),F('volonta','Forza di volontà','tracker'),
+      F('fame','Fame','pips',{max:5}),F('umanita','Umanità','pips',{max:10}),
+    ]},
+    {id:'capacita',title:'Capacità',layout:'g2',fields:[
+      F('atletica','Atletica','pips',{max:5}),F('rissa','Rissa','pips',{max:5}),F('furtivita','Furtività','pips',{max:5}),
+      F('sotterfugio','Sotterfugio','pips',{max:5}),F('intimidire','Intimidire','pips',{max:5}),F('persuasione','Persuasione','pips',{max:5}),
+      F('intuito','Intuito','pips',{max:5}),F('vigilanza','Vigilanza','pips',{max:5}),F('occulto','Occulto','pips',{max:5}),
+      F('investigazione','Investigazione','pips',{max:5}),
+    ]},
+    {id:'discipline',title:'Discipline e legami',layout:'stack',fields:[
+      F('discipline','Discipline','longtext'),F('vantaggi','Vantaggi e difetti','longtext'),
+      F('tocchi','Tocchi di umanità','longtext'),
+    ]},
+  ]},
+
+cyberpunk:{ id:'cyberpunk', name:'Cyberpunk RED', profField:'',
+  sections:[
+    {id:'identita',title:'Identità',layout:'g2',fields:[
+      F('ruolo','Ruolo','text'),F('rank','Grado di ruolo','number',{default:4}),
+      F('lifepath','Lifepath','longtext'),
+    ]},
+    {id:'stats',title:'Statistiche',layout:'g3',fields:[
+      F('int','INT','number',{default:5}),F('rif','RIF','number',{default:5}),F('des','DES','number',{default:5}),
+      F('tec','TEC','number',{default:5}),F('freddezza','FRE','number',{default:5}),F('volonta','VOL','number',{default:5}),
+      F('fascino','FAS','number',{default:5}),F('cor','COR','number',{default:5}),F('mov','MOV','number',{default:5}),
+    ]},
+    {id:'stato',title:'Stato',layout:'g2',fields:[
+      F('hp','Punti ferita','tracker'),F('umanita','Umanità','number',{default:50}),
+      F('armatura_t','Armatura busto','number',{default:11}),F('armatura_c','Armatura testa','number',{default:11}),
+    ]},
+    {id:'skill',title:'Abilità e armi',layout:'stack',fields:[
+      F('abilita','Abilità','list',{cols:[{id:'nome',label:'Abilità'},{id:'stat',label:'Stat'},{id:'liv',label:'Livello'},{id:'tot',label:'Tot',roll:'1d10+{v}'}]}),
+      F('armi','Armi','list',{cols:[{id:'nome',label:'Arma'},{id:'danni',label:'Danni',roll:'{v}'},{id:'rof',label:'RoF'},{id:'mun',label:'Munizioni'}]}),
+      F('cyber','Cyberware','longtext'),
+    ]},
+  ]},
+
+generico:{ id:'generico', name:'Scheda vuota', profField:'',
+  sections:[
+    {id:'base',title:'Dati',layout:'g2',fields:[
+      F('concetto','Concetto','text'),F('livello','Livello','number',{default:1}),
+    ]},
+    {id:'valori',title:'Valori',layout:'g3',fields:[
+      F('v1','Valore 1','stat',{default:10}),F('v2','Valore 2','stat',{default:10}),F('v3','Valore 3','stat',{default:10}),
+    ]},
+    {id:'stato',title:'Stato',layout:'g2',fields:[
+      F('salute','Salute','tracker'),F('risorsa','Risorsa','tracker'),
+    ]},
+    {id:'note',title:'Note',layout:'stack',fields:[F('note','Appunti','longtext')]},
+  ]},
+};
+
+/* ============================================================ Persistenza  */
+async function loadIndex(){
+  S.schemas={};
+  for(const k in PRESETS) S.schemas[k]=JSON.parse(JSON.stringify(PRESETS[k]));
+  const cfg=await DB.readJSON(Paths.config);
+  if(cfg) S.cfg={...S.cfg,...cfg};
+  for(const p of await DB.list('schemi')){
+    const s=await DB.readJSON(p); if(s&&s.id) S.schemas[s.id]=s;
+  }
+  S.chars=[];
+  for(const p of await DB.list('personaggi')){
+    const c=await DB.readJSON(p);
+    if(c&&c.id) S.chars.push({id:c.id,name:c.name,schemaId:c.schemaId,portrait:c.portrait,updatedAt:c.updatedAt});
+  }
+  S.chars.sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  S.rules=[];
+  for(const p of await DB.list('regole')){
+    const r=await DB.readJSON(p); if(r&&r.id) S.rules.push(r);
+  }
+  const sess=await DB.list('sessioni');
+  if(sess.length){
+    const all=(await Promise.all(sess.map(p=>DB.readJSON(p)))).filter(Boolean);
+    all.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    S.session=all.find(s=>s.open)||null;
+  }
+}
+const saveCfg = debounce(()=>DB.writeJSON(Paths.config,S.cfg),300);
+async function saveChar(c){
+  c.updatedAt=nowISO();
+  await DB.writeJSON(Paths.char(c.id),c);
+  const i=S.chars.findIndex(x=>x.id===c.id);
+  const meta={id:c.id,name:c.name,schemaId:c.schemaId,portrait:c.portrait,updatedAt:c.updatedAt};
+  if(i>=0) S.chars[i]=meta; else S.chars.unshift(meta);
+}
+const saveCharSoon = debounce(()=>{if(S.char) saveChar(S.char)},600);
+function saveSession(){ if(S.session) DB.writeJSON(Paths.session(S.session.id),S.session) }
+const schemaOf = c => (c && S.schemas[c.schemaId]) || S.schemas.generico || PRESETS.generico;
+
+function newChar(schemaId,name){
+  return {id:uid('pg'),name:name||'Senza nome',schemaId,values:{},attachments:[],
+          notes:'',createdAt:nowISO(),updatedAt:nowISO()};
+}
+
+/* ================================================================ Render   */
+const TABS=[
+  ['personaggi','🗡️','Personaggi'],['scheda','📜','Scheda'],
+  ['sessione','⚔️','Sessione'],['regole','📖','Regole'],['config','⚙️','Impostazioni'],
+];
+function renderTabs(){
+  $('#tabs').innerHTML=TABS.map(([id,g,l])=>
+    `<button data-tab="${id}" aria-selected="${S.tab===id}"><span class="g">${g}</span>${l}</button>`).join('');
+}
+function render(){
+  renderTabs();
+  $('#folderLabel').textContent = DB.store instanceof FolderStore ? '/'+ (DB.rootName||'cartella') : 'archivio browser';
+  const v=$('#view');
+  v.innerHTML = ({
+    personaggi:viewChars, scheda:viewSheet, sessione:viewSession,
+    regole:viewRules, config:viewConfig,
+  }[S.tab]||viewChars)();
+  v.scrollTop=0;
+  renderDiceBar();
+}
+function renderDiceBar(){
+  let bar=$('.dicebar');
+  const show = S.tab==='scheda'||S.tab==='sessione';
+  document.body.classList.toggle('hasdice',show);
+  if(!show){ bar&&bar.remove(); return }
+  if(!bar){ bar=document.createElement('div');bar.className='dicebar';$('#layers').appendChild(bar) }
+  bar.innerHTML = S.cfg.favDice.map(d=>`<button class="dchip" data-quick="${esc(d)}">${esc(d)}</button>`).join('')
+    + `<button class="dchip" data-act="dadolibero">＋ formula</button>`;
+}
+
+/* ---------------------------------------------------------- Vista elenco  */
+function viewChars(){
+  if(!S.chars.length) return `
+    <div class="card"><div class="empty"><span class="g">🗡️</span>
+      Nessun personaggio.<br>Creane uno o importa la scheda in PDF.</div>
+      <div class="row" style="gap:8px">
+        <button class="btn primary grow" data-act="nuovopg">Crea personaggio</button>
+        <button class="btn grow" data-act="importapdf">Importa da PDF</button>
+      </div></div>` + folderNotice();
+  return folderNotice() + `
+    <div class="row" style="margin-bottom:12px">
+      <div class="grow"><div class="eyebrow">${S.chars.length} personagg${S.chars.length===1?'io':'i'}</div></div>
+      <button class="btn sm" data-act="importapdf">Da PDF</button>
+      <button class="btn sm primary" data-act="nuovopg">Nuovo</button>
+    </div>` +
+    S.chars.map(c=>`<button class="charcard" data-open="${c.id}">
+      <div class="ava">${c.portrait?`<img src="${esc(c.portrait)}" alt="">`:esc((c.name||'?')[0].toUpperCase())}</div>
+      <div class="grow"><b>${esc(c.name)}</b>
+        <span class="faint">${esc((S.schemas[c.schemaId]||{}).name||c.schemaId)} · ${c.updatedAt?new Date(c.updatedAt).toLocaleDateString('it-IT'):''}</span></div>
+      <span class="pill">apri</span></button>`).join('');
+}
+function folderNotice(){
+  if(DB.store instanceof FolderStore) return '';
+  return `<div class="card" style="border-color:var(--gold)">
+    <div class="eyebrow">Dati</div>
+    <p class="faint" style="margin:6px 0 10px">${DB.supportsFolder
+      ? 'Stai usando l\u2019archivio interno del browser. Scegli una cartella sul disco per avere i file veri, sincronizzabili e salvabili.'
+      : 'Questo browser non sa aprire cartelle. I dati restano nell\u2019archivio interno: esportali ogni tanto. Chrome o Edge su computer supportano la cartella.'}</p>
+    <div class="row"><button class="btn primary" data-act="cartella">Scegli cartella</button>
+    <button class="btn" data-act="esporta">Esporta tutto</button></div></div>`;
+}
+
+/* ----------------------------------------------------------- Vista scheda */
+function viewSheet(){
+  if(!S.char) return `<div class="card"><div class="empty"><span class="g">📜</span>
+     Nessuna scheda aperta.</div><button class="btn primary" style="width:100%" data-tab-go="personaggi">Vai ai personaggi</button></div>`;
+  const c=S.char, sch=schemaOf(c), sc=computeAll(c,sch);
+  const head=`<div class="card">
+    <div class="row">
+      <div class="ava charcard-ava" style="width:56px;height:56px;border-radius:12px;overflow:hidden;background:var(--panel-2);border:1px solid var(--line);display:grid;place-items:center;font-family:var(--display);font-size:22px;color:var(--gold)"
+        data-act="ritratto">${c.portrait?`<img src="${esc(c.portrait)}" style="width:100%;height:100%;object-fit:cover" alt="">`:esc((c.name||'?')[0].toUpperCase())}</div>
+      <div class="grow"><input data-name value="${esc(c.name)}" style="font-family:var(--display);font-size:19px;font-weight:600;background:transparent;border:0;padding:0">
+        <div class="faint">${esc(sch.name)}</div></div>
+      <button class="iconbtn" data-act="menupg">⋯</button>
+    </div></div>`;
+  const body=sch.sections.map(s=>{
+    const inner = s.layout==='stack'
+      ? s.fields.map(f=>renderField(f,c,sc,sch)).join('')
+      : `<div class="grid ${s.layout||'g2'}">${s.fields.map(f=>renderField(f,c,sc,sch)).join('')}</div>`;
+    const open = c.closed && c.closed.includes(s.id) ? '' : 'open';
+    return `<details class="section" ${open} data-sec="${s.id}">
+      <summary>${esc(s.title)}</summary><div class="body">${inner}</div></details>`;
+  }).join('');
+  const att=`<details class="section" data-sec="__att"><summary>Allegati (${(c.attachments||[]).length})</summary>
+    <div class="body">
+      <div class="drop" id="dropzone">Trascina qui immagini, PDF, mappe<br>
+        <button class="btn sm" style="margin-top:8px" data-act="allega">Scegli file</button></div>
+      <div style="margin-top:10px">${(c.attachments||[]).map((a,i)=>`
+        <div class="att"><div class="th" data-att-open="${i}">${a.type&&a.type.startsWith('image/')?'🖼️':a.type==='application/pdf'?'📕':'📎'}</div>
+          <div class="grow"><b style="font-size:13px">${esc(a.name)}</b><div class="faint">${(a.size/1024).toFixed(0)} KB</div></div>
+          <button class="btn sm" data-att-open="${i}">Apri</button>
+          <button class="btn sm danger" data-att-del="${i}">✕</button></div>`).join('')||'<div class="faint">Nessun allegato.</div>'}</div>
+    </div></details>`;
+  const note=`<details class="section" data-sec="__note"><summary>Appunti liberi</summary>
+    <div class="body"><textarea data-notes rows="6" placeholder="Tutto quello che non entra nei campi.">${esc(c.notes||'')}</textarea></div></details>`;
+  return head+body+att+note;
+}
+
+function renderField(f,c,sc,sch){
+  const v=c.values[f.id];
+  const roll = f.roll ? `<button class="btn sm" data-roll="${esc(f.roll)}" data-rolllabel="${esc(f.label)}">🎲</button>` : '';
+  switch(f.type){
+    case 'stat':{
+      const mod=sc[f.id+'_mod']??0;
+      return `<div class="statbox"><div class="lbl">${esc(f.label)}</div>
+        <input type="number" data-f="${f.id}" value="${v??f.default??10}" inputmode="numeric">
+        <button class="mod" data-out="${f.id}_mod" data-sign="1" data-roll="${esc(f.roll||('1d20+{'+f.id+'_mod}'))}" data-rolllabel="${esc(f.label)}">${mod>=0?'+':''}${mod}</button></div>`;
+    }
+    case 'formula':
+      return `<label class="f field"><span>${esc(f.label)}</span>
+        <div class="rollable"><div class="val" data-out="${f.id}">${sc[f.id]??0}</div>
+        <div class="grow faint" style="font-size:11px;font-family:var(--mono)">${esc(f.expr||'')}</div>${roll}</div></label>`;
+    case 'check':
+      return `<label class="field row" style="gap:9px"><input type="checkbox" data-f="${f.id}" ${v?'checked':''} style="width:20px;height:20px;flex:none">
+        <span class="grow">${esc(f.label)}</span></label>`;
+    case 'select':
+      return `<label class="f field"><span>${esc(f.label)}</span><select data-f="${f.id}">${
+        (f.options||[]).map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
+    case 'longtext':
+      return `<label class="f field"><span>${esc(f.label)}</span><textarea data-f="${f.id}" rows="4">${esc(v||'')}</textarea></label>`;
+    case 'number':
+      return `<label class="f field"><span>${esc(f.label)}</span><div class="row">
+        <input class="grow" type="number" data-f="${f.id}" value="${v??f.default??0}" inputmode="numeric">${roll}</div></label>`;
+    case 'tracker':{
+      const t=v||f.default||{cur:0,max:0};const pct=t.max?clamp(t.cur/t.max*100,0,100):0;
+      return `<div class="field tracker"><div class="eyebrow">${esc(f.label)}</div>
+        <div class="row" style="gap:6px;margin-top:4px">
+          <button class="btn sm" data-tr="${f.id}" data-d="-1">−</button>
+          <input class="grow" type="number" data-tr-cur="${f.id}" value="${t.cur??0}" style="text-align:center;font-family:var(--mono);font-weight:700" inputmode="numeric">
+          <span class="faint">/</span>
+          <input type="number" data-tr-max="${f.id}" value="${t.max??0}" style="width:64px;text-align:center;font-family:var(--mono)" inputmode="numeric">
+          <button class="btn sm" data-tr="${f.id}" data-d="1">＋</button></div>
+        <div class="bar"><i style="width:${pct}%"></i></div></div>`;
+    }
+    case 'pips':{
+      const n=Number(v||0),max=f.max||5;
+      return `<div class="field"><div class="eyebrow">${esc(f.label)} <span style="color:var(--gold)">${n}/${max}</span></div>
+        <div class="pips" style="margin-top:5px">${Array.from({length:max},(_,i)=>
+          `<button class="pip ${i<n?'on':''}" data-pip="${f.id}" data-n="${i+1}" aria-label="${i+1}"></button>`).join('')}</div></div>`;
+    }
+    case 'skill':{
+      const st=v||{};const rank=Number(st.rank||0);const tot=sc[f.id]??0;
+      const labels=sch.rankLabels||['—','●','●●'];
+      return `<div class="rollable field" style="margin-bottom:6px">
+        <button class="pill" data-rank="${f.id}" title="${esc(labels[rank]||'')}" style="min-width:34px">${rank?'●'.repeat(rank):'○'}</button>
+        <span class="grow">${esc(f.label)}${f.attr?` <span class="faint" style="font-size:11px">${esc(f.attr)}</span>`:''}</span>
+        <button class="val" data-out="${f.id}" data-sign="1" data-roll="1d20+{${f.id}}" data-rolllabel="${esc(f.label)}">${tot>=0?'+':''}${tot}</button></div>`;
+    }
+    case 'percent':{
+      const n=Number(v??f.default??0);
+      return `<div class="statbox field"><div class="lbl">${esc(f.label)}</div>
+        <input type="number" data-f="${f.id}" value="${n}" inputmode="numeric">
+        <div class="row" style="justify-content:center;gap:6px;margin-top:2px">
+          <button class="pill" data-pct="${f.id}" data-lvl="1">${n}</button>
+          <button class="pill" data-pct="${f.id}" data-lvl="2">${Math.floor(n/2)}</button>
+          <button class="pill" data-pct="${f.id}" data-lvl="5">${Math.floor(n/5)}</button></div></div>`;
+    }
+    case 'list':{
+      const rows=Array.isArray(v)?v:[];const cols=f.cols||[{id:'nome',label:'Voce'}];
+      return `<div class="field"><div class="row" style="margin-bottom:6px">
+          <div class="eyebrow grow">${esc(f.label)}</div>
+          <button class="btn sm" data-listadd="${f.id}">＋ riga</button></div>
+        <table class="list"><thead><tr>${cols.map(c2=>`<th>${esc(c2.label)}</th>`).join('')}<th></th></tr></thead>
+        <tbody>${rows.map((r,i)=>`<tr>${cols.map(c2=>`<td>${
+            c2.roll?`<div class="row" style="gap:3px"><input class="grow" data-cell="${f.id}" data-i="${i}" data-c="${c2.id}" value="${esc(r[c2.id]||'')}">
+              <button class="btn sm" data-rollcell="${esc(c2.roll)}" data-i="${i}" data-c="${c2.id}" data-lf="${f.id}" data-rolllabel="${esc(f.label)}">🎲</button></div>`
+            :`<input data-cell="${f.id}" data-i="${i}" data-c="${c2.id}" value="${esc(r[c2.id]||'')}">`}</td>`).join('')}
+          <td><button class="btn sm danger" data-listdel="${f.id}" data-i="${i}">✕</button></td></tr>`).join('')}</tbody></table></div>`;
+    }
+    default:
+      return `<label class="f field"><span>${esc(f.label)}</span><div class="row">
+        <input class="grow" data-f="${f.id}" value="${esc(v??f.default??'')}">${roll}</div></label>`;
+  }
+}
+
+/* --------------------------------------------------------- Vista sessione */
+function viewSession(){
+  if(!S.session) return `<div class="card"><div class="empty"><span class="g">⚔️</span>
+      Nessuna sessione aperta.<br>Aprine una per tracciare iniziativa, ferite e cronologia.</div>
+      <button class="btn primary" style="width:100%" data-act="nuovasessione">Apri sessione</button>
+      <button class="btn ghost" style="width:100%;margin-top:8px" data-act="sessioniprec">Sessioni precedenti</button></div>`;
+  const s=S.session;
+  const ord=[...s.combatants].sort((a,b)=>(b.init||0)-(a.init||0)||String(a.name).localeCompare(String(b.name)));
+  return `<div class="card">
+      <div class="row"><div class="grow"><input data-sess-title value="${esc(s.title)}" style="background:transparent;border:0;padding:0;font-family:var(--display);font-size:18px;font-weight:600">
+        <div class="faint">${new Date(s.date).toLocaleDateString('it-IT')} · round ${s.round}</div></div>
+        <button class="iconbtn" data-act="menusessione">⋯</button></div>
+    </div>
+    <div class="card">
+      <div class="row" style="margin-bottom:10px">
+        <div class="eyebrow grow">Ordine di iniziativa</div>
+        <button class="btn sm" data-act="tiraini">Tira tutti</button>
+        <button class="btn sm" data-act="aggcomb">＋</button>
+      </div>
+      ${ord.length?ord.map(k=>{
+        const active = s.turnId===k.id;
+        return `<div class="combatant ${active?'active':''} ${k.hp!=null&&k.hp<=0?'down':''}">
+          <button class="init" data-initedit="${k.id}">${k.init??'–'}</button>
+          <div class="grow"><b>${esc(k.name)}</b>
+            <div class="faint">${k.ca?'CA '+k.ca+' · ':''}${k.cond&&k.cond.length?esc(k.cond.join(', ')):'nessuna condizione'}</div></div>
+          <div style="text-align:right">
+            <div class="row" style="gap:4px">
+              <button class="btn sm" data-hp="${k.id}" data-d="-1">−</button>
+              <span style="font-family:var(--mono);font-weight:700;min-width:46px;text-align:center">${k.hp??'–'}${k.hpmax?'/'+k.hpmax:''}</span>
+              <button class="btn sm" data-hp="${k.id}" data-d="1">＋</button>
+            </div>
+            <button class="pill" style="margin-top:4px" data-comb="${k.id}">dettagli</button>
+          </div></div>`}).join('')
+        :'<div class="faint">Nessun combattente. Aggiungi i personaggi o dei nemici.</div>'}
+      ${ord.length?`<div class="row" style="margin-top:10px;gap:8px">
+        <button class="btn grow" data-act="turnoprec">◀ Prec</button>
+        <button class="btn primary grow" data-act="turnosucc">Turno successivo ▶</button></div>`:''}
+    </div>
+    <div class="card"><div class="row" style="margin-bottom:8px">
+        <div class="eyebrow grow">Cronologia</div>
+        <button class="btn sm" data-act="notasessione">＋ nota</button></div>
+      <div class="log">${s.log.length?s.log.slice(0,80).map(l=>
+        `<div><span class="t">${hhmm(l.t)}</span> <b>${esc(l.txt)}</b>${l.d?` <span class="faint">${esc(l.d)}</span>`:''}</div>`).join('')
+        :'<div class="faint">Ancora niente. Ogni tiro finisce qui.</div>'}</div></div>`;
+}
+
+/* ----------------------------------------------------------- Vista regole */
+function viewRules(){
+  return `<div class="card">
+      <div class="row" style="margin-bottom:8px"><div class="eyebrow grow">Manuali indicizzati</div>
+      <button class="btn sm primary" data-act="importaregole">＋ PDF</button></div>
+      ${S.rules.length?S.rules.map(r=>`<div class="att">
+        <div class="th">📖</div><div class="grow"><b style="font-size:13px">${esc(r.name)}</b>
+        <div class="faint">${r.chunks.length} sezioni · ${r.pages||'?'} pagine</div></div>
+        <button class="btn sm danger" data-rule-del="${r.id}">✕</button></div>`).join('')
+        :'<div class="faint">Carica il PDF di un manuale: il testo viene spezzato e indicizzato qui, in locale.</div>'}
+    </div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:8px">Chiedi alle regole</div>
+      <textarea id="ruleQ" rows="2" placeholder="Come funziona la copertura? Quanto dura un riposo breve?"></textarea>
+      <div class="row" style="margin-top:8px">
+        <label class="row grow faint" style="gap:6px"><input type="checkbox" id="ruleCtx" style="width:18px;height:18px" ${S.char?'checked':''}>
+          usa la scheda aperta</label>
+        <button class="btn primary" data-act="chiediregole">Cerca</button></div>
+      <div id="ruleA" style="margin-top:12px"></div>
+    </div>
+    ${!S.cfg.apiKey?`<div class="card" style="border-color:var(--gold)"><div class="eyebrow">Serve la chiave</div>
+      <p class="faint" style="margin:6px 0 10px">La ricerca testuale funziona sempre. Per le risposte scritte serve la tua chiave Anthropic.</p>
+      <button class="btn" data-tab-go="config">Apri impostazioni</button></div>`:''}`;
+}
+
+/* ------------------------------------------------------ Vista impostazioni*/
+function viewConfig(){
+  return `<div class="card"><div class="eyebrow">Dove stanno i dati</div>
+      <p class="faint" style="margin:6px 0 10px">${DB.store instanceof FolderStore
+        ? 'Cartella <b style="color:var(--ink)">'+esc(DB.rootName||'')+'</b>. Ogni personaggio è un file JSON leggibile.'
+        : 'Archivio interno del browser.'}</p>
+      <div class="row wrap" style="gap:8px">
+        <button class="btn primary" data-act="cartella">${DB.store instanceof FolderStore?'Cambia cartella':'Scegli cartella'}</button>
+        <button class="btn" data-act="esporta">Esporta backup</button>
+        <button class="btn" data-act="importa">Importa backup</button></div></div>
+
+    <div class="card"><div class="eyebrow">Modelli di scheda</div>
+      <p class="faint" style="margin:6px 0 10px">${Object.keys(S.schemas).length} modelli. Puoi modificarne i campi o generarne uno nuovo dal PDF di una scheda.</p>
+      <div class="row wrap" style="gap:8px">
+        <button class="btn" data-act="editschema">Modifica modello</button>
+        <button class="btn" data-act="importapdf">Genera da PDF</button></div></div>
+
+    <div class="card"><div class="eyebrow">Chiave Anthropic</div>
+      <p class="faint" style="margin:6px 0 10px">Serve solo per leggere PDF e rispondere sulle regole. Resta in questo browser e non passa da nessun server mio.</p>
+      <label class="f" style="margin-bottom:8px"><span>API key</span>
+        <input type="password" id="apiKey" value="${esc(S.cfg.apiKey)}" placeholder="sk-ant-..."></label>
+      <label class="f" style="margin-bottom:10px"><span>Modello</span>
+        <input id="apiModel" value="${esc(S.cfg.model)}"></label>
+      <button class="btn primary" data-act="salvachiave">Salva</button></div>
+
+    <div class="card"><div class="eyebrow">Dadi rapidi</div>
+      <p class="faint" style="margin:6px 0 8px">Uno per riga. Compaiono nella barra durante la scheda e la sessione.</p>
+      <textarea id="favDice" rows="4">${esc(S.cfg.favDice.join('\n'))}</textarea>
+      <button class="btn" style="margin-top:8px" data-act="salvadadi">Salva</button></div>
+
+    <div class="card"><div class="eyebrow">Formule</div>
+      <p class="faint" style="margin:6px 0 0">Nei campi calcolati puoi usare gli id degli altri campi e le funzioni
+      <span style="font-family:var(--mono);color:var(--gold)">floor ceil round min max abs mod half se</span>.
+      Esempio: <span style="font-family:var(--mono);color:var(--gold)">10 + des_mod + armatura</span>.
+      Nei tiri usa le graffe: <span style="font-family:var(--mono);color:var(--gold)">1d20+{comp}</span>.</p></div>`;
+}
+
+/* ================================================================ Modali   */
+function modal(html,onMount){
+  const scrim=document.createElement('div');scrim.className='scrim';
+  scrim.innerHTML=`<div class="modal">${html}</div>`;
+  scrim.addEventListener('click',e=>{if(e.target===scrim)close()});
+  const close=()=>scrim.remove();
+  scrim.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',close));
+  $('#layers').appendChild(scrim);
+  onMount&&onMount(scrim,close);
+  return {el:scrim,close};
+}
+function ask(title,body,okLabel='Conferma'){
+  return new Promise(res=>{
+    const m=modal(`<h2>${esc(title)}</h2><div class="ask faint" style="margin:8px 0 14px">${body}</div>
+      <div class="row"><button class="btn grow" data-close>Annulla</button>
+      <button class="btn primary grow" id="ok">${esc(okLabel)}</button></div>`,
+      (el,close)=>{ $('#ok',el).onclick=()=>{close();res(true)};
+                    el.addEventListener('click',e=>{if(e.target===el)res(false)});
+                    $$('[data-close]',el).forEach(b=>b.addEventListener('click',()=>res(false))) });
+  });
+}
+
+/* ============================================================ Interazioni  */
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('[data-tab],[data-tab-go],[data-open],[data-act],[data-roll],[data-quick],[data-pip],[data-tr],[data-rank],[data-pct],[data-listadd],[data-listdel],[data-rollcell],[data-att-open],[data-att-del],[data-hp],[data-comb],[data-initedit],[data-rule-del]');
+  if(!t) return;
+  const d=t.dataset;
+
+  if(d.tab){S.tab=d.tab;render();return}
+  if(d.tabGo){S.tab=d.tabGo;render();return}
+  if(d.open){await openChar(d.open);return}
+
+  /* --- tiri --- */
+  if(d.roll!==undefined){
+    const sc=S.char?computeAll(S.char,schemaOf(S.char)):{};
+    showRoll(d.rolllabel||'Tiro',rollDice(d.roll,sc));return;
+  }
+  if(d.quick!==undefined){ showRoll(d.quick,rollDice(d.quick,S.char?computeAll(S.char,schemaOf(S.char)):{}));return }
+  if(d.rollcell!==undefined){
+    const list=S.char.values[d.lf]||[];const raw=(list[+d.i]||{})[d.c]||'0';
+    const expr=d.rollcell.replace('{v}',raw);
+    showRoll(`${d.rolllabel} · ${(list[+d.i]||{}).nome||''}`,rollDice(expr,computeAll(S.char,schemaOf(S.char))));return;
+  }
+  if(d.pct!==undefined){
+    const sch=schemaOf(S.char),f=findField(sch,d.pct);
+    const base=Number(S.char.values[d.pct]??f.default??0);
+    const target=d.lvl==='1'?base:d.lvl==='2'?Math.floor(base/2):Math.floor(base/5);
+    const r=rollDice('1d100');
+    const ok=r.total<=target;
+    const grade=r.total<=Math.floor(base/5)?'successo estremo':r.total<=Math.floor(base/2)?'successo forte':
+                r.total<=base?'successo':r.total>=96?'fallimento critico':'fallimento';
+    showRoll(`${f.label} · obiettivo ${target}`,r,
+      `<div style="margin-top:4px;color:${ok?'var(--jade)':'var(--rose)'};font-weight:600">${grade}</div>`);
+    return;
+  }
+
+  /* --- campi scheda --- */
+  if(d.pip!==undefined){
+    const cur=Number(S.char.values[d.pip]||0),n=Number(d.n);
+    S.char.values[d.pip]= cur===n? n-1 : n; saveCharSoon(); render();return;
+  }
+  if(d.tr!==undefined){
+    const t2=S.char.values[d.tr]||{cur:0,max:0};
+    t2.cur=Number(t2.cur||0)+Number(d.d);S.char.values[d.tr]=t2;saveCharSoon();render();return;
+  }
+  if(d.rank!==undefined){
+    const sch=schemaOf(S.char);const steps=(sch.rankExprs||['0','x','y']).length;
+    const st=S.char.values[d.rank]||{};st.rank=((Number(st.rank||0))+1)%steps;
+    S.char.values[d.rank]=st;saveCharSoon();render();return;
+  }
+  if(d.listadd!==undefined){
+    const a=Array.isArray(S.char.values[d.listadd])?S.char.values[d.listadd]:[];
+    a.push({});S.char.values[d.listadd]=a;saveCharSoon();render();return;
+  }
+  if(d.listdel!==undefined){
+    S.char.values[d.listdel].splice(+d.i,1);saveCharSoon();render();return;
+  }
+  if(d.attOpen!==undefined) return openAttachment(+d.attOpen);
+  if(d.attDel!==undefined){
+    const a=S.char.attachments[+d.attDel];
+    if(await ask('Elimina allegato',`Rimuovo <b>${esc(a.name)}</b> dalla scheda e dal disco.`,'Elimina')){
+      await DB.remove(a.path);S.char.attachments.splice(+d.attDel,1);await saveChar(S.char);render();
+    } return;
+  }
+
+  /* --- sessione --- */
+  if(d.hp!==undefined){
+    const k=S.session.combatants.find(x=>x.id===d.hp);
+    k.hp=Number(k.hp||0)+Number(d.d);
+    S.session.log.unshift({t:nowISO(),k:'pf',txt:`${k.name}: ${d.d>0?'+':''}${d.d} PF → ${k.hp}`});
+    saveSession();render();return;
+  }
+  if(d.comb!==undefined) return editCombatant(d.comb);
+  if(d.initedit!==undefined){
+    const k=S.session.combatants.find(x=>x.id===d.initedit);
+    const r=rollDice('1d20+'+(k.initbonus||0));k.init=r.total;
+    S.session.log.unshift({t:nowISO(),k:'ini',txt:`Iniziativa ${k.name}: ${r.total}`});
+    saveSession();render();return;
+  }
+  if(d.ruleDel!==undefined){
+    if(await ask('Elimina manuale','Tolgo l\u2019indice delle regole. Il PDF originale non viene toccato.','Elimina')){
+      await DB.remove(Paths.rules(d.ruleDel));S.rules=S.rules.filter(r=>r.id!==d.ruleDel);render();
+    } return;
+  }
+
+  if(d.act) ACT[d.act]&&ACT[d.act](t);
+},false);
+
+document.addEventListener('input',e=>{
+  const el=e.target,d=el.dataset;
+  if(!S.char&&!d.sessTitle) return;
+  if(d.f!==undefined){
+    const sch=schemaOf(S.char),f=findField(sch,d.f);
+    let v = el.type==='checkbox'?el.checked : (el.type==='number'?(el.value===''?'':Number(el.value)):el.value);
+    S.char.values[d.f]=v;saveCharSoon();
+    if(f&&['stat','number','percent','select','check'].includes(f.type)) refreshDerived();
+    return;
+  }
+  if(d.cell!==undefined){
+    const a=S.char.values[d.cell]||[];(a[+d.i]=a[+d.i]||{})[d.c]=el.value;S.char.values[d.cell]=a;saveCharSoon();return;
+  }
+  if(d.trCur!==undefined||d.trMax!==undefined){
+    const id=d.trCur||d.trMax,t=S.char.values[id]||{cur:0,max:0};
+    if(d.trCur!==undefined)t.cur=Number(el.value||0);else t.max=Number(el.value||0);
+    S.char.values[id]=t;saveCharSoon();return;
+  }
+  if(d.name!==undefined){S.char.name=el.value;saveCharSoon();return}
+  if(d.notes!==undefined){S.char.notes=el.value;saveCharSoon();return}
+  if(d.sessTitle!==undefined&&S.session){S.session.title=el.value;saveSession();return}
+},false);
+
+document.addEventListener('toggle',e=>{
+  const s=e.target;
+  if(!s.dataset.sec||!S.char) return;
+  S.char.closed=(S.char.closed||[]).filter(x=>x!==s.dataset.sec);
+  if(!s.open) S.char.closed.push(s.dataset.sec);
+  saveCharSoon();
+},true);
+
+function findField(sch,id){
+  for(const s of sch.sections) for(const f of s.fields) if(f.id===id) return f;
+  return {label:id,type:'text'};
+}
+/* aggiorna solo i valori calcolati, senza ridisegnare (non perde il focus) */
+function refreshDerived(){
+  const sch=schemaOf(S.char),sc=computeAll(S.char,sch);
+  $$('#view [data-out]').forEach(el=>{
+    const v=sc[el.dataset.out];
+    if(v===undefined||v===null) return;
+    el.textContent = el.dataset.sign&&typeof v==='number' ? (v>=0?'+':'')+v : v;
+  });
+  $$('#view .statbox').forEach(box=>{
+    const inp=$('input[data-f]',box); if(!inp) return;
+    $$('[data-pct]',box).forEach(b=>{const n=Number(inp.value||0);
+      b.textContent = b.dataset.lvl==='1'? n : Math.floor(n/Number(b.dataset.lvl))});
+  });
+}
+
+/* ============================================================== Utilità IO */
+function pickFile(accept,multiple){
+  return new Promise(res=>{const i=document.createElement('input');i.type='file';
+    if(accept)i.accept=accept; i.multiple=!!multiple;
+    i.onchange=()=>res([...i.files]); i.click()});
+}
+function download(name,blob){
+  const u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),4000);
+}
+/* base64 senza FileReader: funziona con qualsiasi Blob o File */
+async function toB64(b){
+  if(b&&typeof b.arrayBuffer==='function'){
+    const buf=new Uint8Array(await b.arrayBuffer());
+    let s='';const CH=0x8000;
+    for(let i=0;i<buf.length;i+=CH) s+=String.fromCharCode.apply(null,buf.subarray(i,i+CH));
+    return btoa(s);
+  }
+  return new Promise((res,rej)=>{const f=new FileReader();
+    f.onload=()=>res(String(f.result).split(',')[1]);f.onerror=()=>rej(f.error);f.readAsDataURL(b)});
+}
+function shrinkImage(file,max=200){
+  return new Promise(res=>{const img=new Image(),u=URL.createObjectURL(file);
+    img.onload=()=>{const s=Math.min(max/img.width,max/img.height,1);
+      const cv=document.createElement('canvas');cv.width=img.width*s;cv.height=img.height*s;
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      URL.revokeObjectURL(u);res(cv.toDataURL('image/jpeg',.82))};
+    img.src=u});
+}
+
+async function openChar(id){
+  const c=await DB.readJSON(Paths.char(id));
+  if(!c){toast('Scheda non trovata');return}
+  S.char=c;S.cfg.lastChar=id;saveCfg();S.tab='scheda';render();
+}
+
+/* ================================================================ Allegati */
+async function addAttachments(files){
+  if(!S.char) return;
+  for(const f of files){
+    const name=Date.now().toString(36)+'-'+f.name.replace(/[^\w.\-]/g,'_');
+    const path=Paths.att(S.char.id,name);
+    await DB.writeBlob(path,f);
+    (S.char.attachments=S.char.attachments||[]).push({name:f.name,type:f.type,size:f.size,path});
+  }
+  await saveChar(S.char);render();toast(files.length+' allegat'+(files.length===1?'o':'i'));
+}
+async function openAttachment(i){
+  const a=S.char.attachments[i],b=await DB.readBlob(a.path);
+  if(!b){toast('File non trovato nella cartella');return}
+  const url=URL.createObjectURL(b);
+  if((a.type||'').startsWith('image/')){
+    modal(`<h2>${esc(a.name)}</h2><img src="${url}" style="width:100%;border-radius:10px;margin:10px 0">
+      <button class="btn" style="width:100%" data-close>Chiudi</button>`);
+  }else{ window.open(url,'_blank') }
+}
+
+/* ================================================== Sessione: combattenti  */
+function editCombatant(id){
+  const k=S.session.combatants.find(x=>x.id===id);
+  modal(`<h2>${esc(k.name)}</h2>
+    <div class="grid g2" style="margin:12px 0">
+      <label class="f"><span>Nome</span><input id="cn" value="${esc(k.name)}"></label>
+      <label class="f"><span>Iniziativa</span><input id="ci" type="number" value="${k.init??''}"></label>
+      <label class="f"><span>PF attuali</span><input id="ch" type="number" value="${k.hp??''}"></label>
+      <label class="f"><span>PF massimi</span><input id="cm" type="number" value="${k.hpmax??''}"></label>
+      <label class="f"><span>CA / difesa</span><input id="ca" type="number" value="${k.ca??''}"></label>
+      <label class="f"><span>Bonus iniziativa</span><input id="cb" type="number" value="${k.initbonus??0}"></label>
+    </div>
+    <label class="f" style="margin-bottom:12px"><span>Condizioni (separate da virgola)</span>
+      <input id="cc" value="${esc((k.cond||[]).join(', '))}"></label>
+    <label class="f" style="margin-bottom:14px"><span>Note</span><textarea id="cnote" rows="3">${esc(k.note||'')}</textarea></label>
+    <div class="row"><button class="btn danger" id="del">Rimuovi</button>
+      <button class="btn grow" data-close>Annulla</button>
+      <button class="btn primary grow" id="ok">Salva</button></div>`,
+  (el,close)=>{
+    $('#ok',el).onclick=()=>{
+      k.name=$('#cn',el).value;k.init=num($('#ci',el).value);k.hp=num($('#ch',el).value);
+      k.hpmax=num($('#cm',el).value);k.ca=num($('#ca',el).value);k.initbonus=num($('#cb',el).value)||0;
+      k.cond=$('#cc',el).value.split(',').map(s=>s.trim()).filter(Boolean);k.note=$('#cnote',el).value;
+      saveSession();close();render();
+    };
+    $('#del',el).onclick=()=>{
+      S.session.combatants=S.session.combatants.filter(x=>x.id!==id);saveSession();close();render();
+    };
+  });
+}
+const num=v=>v===''||v==null?null:Number(v);
+
+/* ================================================================== Azioni */
+const ACT={
+
+  async cartella(){
+    try{ if(await DB.chooseFolder()){ await loadIndex(); render(); toast('Cartella collegata') } }
+    catch(e){ if(e.name!=='AbortError') toast('Non riesco ad aprire la cartella') }
+  },
+
+  nuovopg(){
+    const opts=Object.values(S.schemas).map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+    modal(`<h2>Nuovo personaggio</h2>
+      <label class="f" style="margin:12px 0"><span>Nome</span><input id="n" placeholder="Come si chiama"></label>
+      <label class="f" style="margin-bottom:14px"><span>Modello di scheda</span><select id="s">${opts}</select></label>
+      <div class="row"><button class="btn grow" data-close>Annulla</button>
+      <button class="btn primary grow" id="ok">Crea</button></div>`,
+    (el,close)=>{ $('#n',el).focus();
+      $('#ok',el).onclick=async()=>{
+        const c=newChar($('#s',el).value,$('#n',el).value.trim()||'Senza nome');
+        await saveChar(c);close();S.char=c;S.cfg.lastChar=c.id;saveCfg();S.tab='scheda';render();
+      }});
+  },
+
+  menupg(){
+    const c=S.char;
+    modal(`<h2>${esc(c.name)}</h2><div style="margin:12px 0">
+      <button class="btn" style="width:100%;margin-bottom:8px" id="dup">Duplica scheda</button>
+      <button class="btn" style="width:100%;margin-bottom:8px" id="exp">Esporta questa scheda</button>
+      <button class="btn" style="width:100%;margin-bottom:8px" id="chg">Cambia modello di scheda</button>
+      <button class="btn danger" style="width:100%" id="del">Elimina personaggio</button></div>
+      <button class="btn ghost" style="width:100%" data-close>Chiudi</button>`,
+    (el,close)=>{
+      $('#dup',el).onclick=async()=>{const n=structuredClone(c);n.id=uid('pg');n.name=c.name+' (copia)';
+        await saveChar(n);close();toast('Duplicata')};
+      $('#exp',el).onclick=()=>{download(c.name.replace(/\W+/g,'_')+'.json',new Blob([JSON.stringify(c,null,2)],{type:'application/json'}));close()};
+      $('#chg',el).onclick=()=>{close();
+        modal(`<h2>Cambia modello</h2><p class="faint" style="margin:8px 0">I valori con lo stesso id restano. Gli altri rimangono nel file ma non si vedono.</p>
+          <select id="s">${Object.values(S.schemas).map(s=>`<option value="${esc(s.id)}" ${s.id===c.schemaId?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+          <div class="row" style="margin-top:14px"><button class="btn grow" data-close>Annulla</button>
+          <button class="btn primary grow" id="ok">Applica</button></div>`,
+        (e2,c2)=>{$('#ok',e2).onclick=async()=>{c.schemaId=$('#s',e2).value;await saveChar(c);c2();render()}})};
+      $('#del',el).onclick=async()=>{close();
+        if(await ask('Elimina personaggio',`<b>${esc(c.name)}</b> e i suoi allegati vengono cancellati dalla cartella.`,'Elimina')){
+          for(const a of c.attachments||[]) await DB.remove(a.path);
+          await DB.remove(Paths.char(c.id));
+          S.chars=S.chars.filter(x=>x.id!==c.id);S.char=null;S.tab='personaggi';render();
+        }};
+    });
+  },
+
+  async ritratto(){
+    if(!S.char) return;
+    const [f]=await pickFile('image/*');if(!f)return;
+    S.char.portrait=await shrinkImage(f);await saveChar(S.char);render();
+  },
+  async allega(){ const fs=await pickFile();if(fs.length) addAttachments(fs) },
+
+  dadolibero(){
+    modal(`<h2>Tira una formula</h2>
+      <p class="faint" style="margin:8px 0">Esempi: <span style="font-family:var(--mono)">2d6+3</span>,
+      <span style="font-family:var(--mono)">4d6dl1</span> (scarta il più basso),
+      <span style="font-family:var(--mono)">1d20 van</span>, <span style="font-family:var(--mono)">1d20+{comp}</span>.</p>
+      <input id="d" placeholder="1d20+5" style="margin-bottom:12px">
+      <div class="row"><button class="btn grow" data-close>Chiudi</button>
+      <button class="btn primary grow" id="ok">Tira</button>
+      <button class="btn" id="fav">★</button></div>`,
+    (el,close)=>{ $('#d',el).focus();
+      const go=()=>{const v=$('#d',el).value.trim();if(!v)return;
+        showRoll(v,rollDice(v,S.char?computeAll(S.char,schemaOf(S.char)):{}));close()};
+      $('#ok',el).onclick=go;
+      $('#d',el).onkeydown=e=>{if(e.key==='Enter')go()};
+      $('#fav',el).onclick=()=>{const v=$('#d',el).value.trim();if(!v)return;
+        S.cfg.favDice.push(v);saveCfg();close();renderDiceBar();toast('Aggiunto ai dadi rapidi')};
+    });
+  },
+
+  /* ---------------- sessione ---------------- */
+  async nuovasessione(){
+    const s={id:uid('ses'),title:'Sessione del '+new Date().toLocaleDateString('it-IT'),
+      date:nowISO(),open:true,round:1,turnId:null,combatants:[],log:[],notes:''};
+    if(S.session){S.session.open=false;saveSession()}
+    S.session=s;saveSession();render();
+  },
+  async sessioniprec(){
+    const paths=await DB.list('sessioni');
+    const all=(await Promise.all(paths.map(p=>DB.readJSON(p)))).filter(Boolean)
+      .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    modal(`<h2>Sessioni</h2><div style="margin:12px 0">${all.length?all.map(s=>
+      `<button class="charcard" data-sid="${s.id}"><div class="grow"><b>${esc(s.title)}</b>
+       <span class="faint">${new Date(s.date).toLocaleDateString('it-IT')} · ${s.log.length} voci</span></div>
+       <span class="pill">riapri</span></button>`).join(''):'<div class="faint">Nessuna sessione salvata.</div>'}</div>
+      <button class="btn ghost" style="width:100%" data-close>Chiudi</button>`,
+    (el,close)=>{ $$('[data-sid]',el).forEach(b=>b.onclick=async()=>{
+      if(S.session){S.session.open=false;saveSession()}
+      S.session=all.find(x=>x.id===b.dataset.sid);S.session.open=true;saveSession();close();render()})});
+  },
+  menusessione(){
+    modal(`<h2>Sessione</h2><div style="margin:12px 0">
+      <button class="btn" style="width:100%;margin-bottom:8px" id="exp">Esporta cronologia</button>
+      <button class="btn" style="width:100%;margin-bottom:8px" id="prev">Apri un\u2019altra sessione</button>
+      <button class="btn" style="width:100%;margin-bottom:8px" id="new">Chiudi e aprine una nuova</button>
+      <button class="btn danger" style="width:100%" id="clr">Svuota cronologia</button></div>
+      <button class="btn ghost" style="width:100%" data-close>Chiudi</button>`,
+    (el,close)=>{
+      $('#exp',el).onclick=()=>{const s=S.session;
+        const txt=`# ${s.title}\n${new Date(s.date).toLocaleString('it-IT')}\n\n`+
+          s.log.slice().reverse().map(l=>`- ${hhmm(l.t)} ${l.txt}${l.d?' ('+l.d+')':''}`).join('\n');
+        download(s.title.replace(/\W+/g,'_')+'.md',new Blob([txt],{type:'text/markdown'}));close()};
+      $('#prev',el).onclick=()=>{close();ACT.sessioniprec()};
+      $('#new',el).onclick=()=>{close();ACT.nuovasessione()};
+      $('#clr',el).onclick=async()=>{close();
+        if(await ask('Svuota cronologia','Tolgo tutte le voci di questa sessione.','Svuota')){
+          S.session.log=[];saveSession();render()}};
+    });
+  },
+  aggcomb(){
+    modal(`<h2>Aggiungi al combattimento</h2>
+      <div class="eyebrow" style="margin:12px 0 6px">Dai personaggi</div>
+      ${S.chars.map(c=>`<button class="btn sm" style="margin:0 6px 6px 0" data-pg="${c.id}">${esc(c.name)}</button>`).join('')||'<div class="faint">Nessuno.</div>'}
+      <hr class="sep">
+      <div class="eyebrow" style="margin-bottom:6px">Oppure a mano</div>
+      <div class="grid g2" style="margin-bottom:10px">
+        <label class="f"><span>Nome</span><input id="n" placeholder="Goblin"></label>
+        <label class="f"><span>Quanti</span><input id="q" type="number" value="1"></label>
+        <label class="f"><span>PF</span><input id="h" type="number" placeholder="7"></label>
+        <label class="f"><span>CA</span><input id="a" type="number" placeholder="15"></label>
+      </div>
+      <div class="row"><button class="btn grow" data-close>Chiudi</button>
+      <button class="btn primary grow" id="ok">Aggiungi</button></div>`,
+    (el,close)=>{
+      $$('[data-pg]',el).forEach(b=>b.onclick=async()=>{
+        const c=await DB.readJSON(Paths.char(b.dataset.pg));const sc=computeAll(c,schemaOf(c));
+        const hp=(c.values.pf||c.values.salute||c.values.hp||{});
+        S.session.combatants.push({id:uid('k'),name:c.name,charId:c.id,
+          hp:hp.cur??null,hpmax:hp.max??null,ca:sc.ca??sc.armatura_t??null,
+          initbonus:sc.iniz??sc.des_mod??0,init:null,cond:[]});
+        saveSession();close();render();
+      });
+      $('#ok',el).onclick=()=>{
+        const n=$('#n',el).value.trim()||'Nemico',q=clamp(Number($('#q',el).value||1),1,30);
+        for(let i=0;i<q;i++) S.session.combatants.push({id:uid('k'),
+          name:q>1?`${n} ${i+1}`:n,hp:num($('#h',el).value),hpmax:num($('#h',el).value),
+          ca:num($('#a',el).value),initbonus:0,init:null,cond:[]});
+        saveSession();close();render();
+      };
+    });
+  },
+  tiraini(){
+    S.session.combatants.forEach(k=>{k.init=rollDice('1d20+'+(k.initbonus||0)).total});
+    const first=[...S.session.combatants].sort((a,b)=>b.init-a.init)[0];
+    S.session.turnId=first?first.id:null;S.session.round=1;
+    S.session.log.unshift({t:nowISO(),k:'ini',txt:'Iniziativa tirata per tutti'});
+    saveSession();render();
+  },
+  turnosucc(){ stepTurn(1) },
+  turnoprec(){ stepTurn(-1) },
+  notasessione(){
+    modal(`<h2>Nota di sessione</h2><textarea id="n" rows="4" placeholder="Cosa è successo"></textarea>
+      <div class="row" style="margin-top:12px"><button class="btn grow" data-close>Annulla</button>
+      <button class="btn primary grow" id="ok">Aggiungi</button></div>`,
+    (el,close)=>{$('#n',el).focus();$('#ok',el).onclick=()=>{
+      const v=$('#n',el).value.trim();if(v){S.session.log.unshift({t:nowISO(),k:'nota',txt:v});saveSession()}
+      close();render()}});
+  },
+};
+function stepTurn(dir){
+  const s=S.session,ord=[...s.combatants].sort((a,b)=>(b.init||0)-(a.init||0));
+  if(!ord.length) return;
+  let i=ord.findIndex(k=>k.id===s.turnId);
+  i = i<0 ? 0 : i+dir;
+  if(i>=ord.length){i=0;s.round++}
+  if(i<0){i=ord.length-1;s.round=Math.max(1,s.round-1)}
+  s.turnId=ord[i].id;
+  s.log.unshift({t:nowISO(),k:'turno',txt:`Round ${s.round} · tocca a ${ord[i].name}`});
+  saveSession();render();
+}
+
+/* ===================================================== Modello linguistico */
+async function claude(messages,system,maxTokens=4000){
+  if(!S.cfg.apiKey) throw new Error('Manca la chiave API: aprila in Impostazioni.');
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'content-type':'application/json','x-api-key':S.cfg.apiKey,
+      'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:S.cfg.model,max_tokens:maxTokens,system,messages}),
+  });
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error((j.error&&j.error.message)||('Errore HTTP '+r.status));
+  return (j.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\n');
+}
+function parseJSON(txt){
+  const s=txt.replace(/```json|```/g,'').trim();
+  const a=s.indexOf('{'),b=s.lastIndexOf('}');
+  return JSON.parse(a>=0?s.slice(a,b+1):s);
+}
+
+const SCHEMA_SPEC=`Restituisci SOLO un oggetto JSON, senza testo attorno, con questa struttura:
+{"id":"id_breve","name":"Nome del gioco","profField":"id_del_bonus_competenza_o_stringa_vuota",
+ "rankExprs":["0","comp","comp*2"],"rankLabels":["—","Competente","Esperto"],
+ "sections":[{"id":"idsezione","title":"Titolo","layout":"g2|g3|stack",
+   "fields":[{"id":"id_campo","label":"Etichetta","type":"tipo","default":valore,
+              "expr":"formula","roll":"1d20+{id}","attr":"id_caratteristica",
+              "options":["a","b"],"max":5,"cols":[{"id":"c","label":"C","roll":"{v}"}]}]}]}
+Tipi ammessi: text, longtext, number, stat, formula, check, select, tracker, pips, skill, percent, list.
+- stat: valore con modificatore calcolato (default floor((v-10)/2)); usa modExpr per cambiarlo.
+- formula: campo calcolato, obbligatorio "expr"; può usare gli id degli altri campi e le funzioni
+  floor ceil round min max abs mod half se(cond,a,b).
+- skill: abilità con gradi di competenza; "attr" indica la caratteristica di base.
+- percent: abilità percentuale (tipo d100), tira sotto il valore.
+- tracker: coppia attuale/massimo. pips: pallini, usa "max". list: tabella, usa "cols".
+Gli id devono essere minuscoli, senza spazi né accenti. Le etichette in italiano.`;
+
+Object.assign(ACT,{
+
+  async salvachiave(){
+    S.cfg.apiKey=$('#apiKey').value.trim(); S.cfg.model=$('#apiModel').value.trim()||'claude-sonnet-5';
+    await DB.writeJSON(Paths.config,S.cfg); toast('Chiave salvata in questo browser'); render();
+  },
+  async salvadadi(){
+    S.cfg.favDice=$('#favDice').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    await DB.writeJSON(Paths.config,S.cfg); toast('Dadi aggiornati'); render();
+  },
+
+  /* ------------- genera un modello di scheda dal PDF ------------- */
+  async importapdf(){
+    const [f]=await pickFile('application/pdf,image/*');if(!f)return;
+    if(!S.cfg.apiKey){toast('Serve la chiave Anthropic: Impostazioni.');S.tab='config';render();return}
+    const m=modal(`<h2>Leggo la scheda</h2><p class="faint" style="margin:10px 0">
+      <span class="busy"></span> Sto ricavando campi, sezioni e formule da <b>${esc(f.name)}</b>. Un minuto.</p>`);
+    try{
+      const b64=await toB64(f);
+      const doc = f.type==='application/pdf'
+        ? {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
+        : {type:'image',source:{type:'base64',media_type:f.type,data:b64}};
+      const txt=await claude([{role:'user',content:[doc,{type:'text',
+        text:'Questa è la scheda personaggio di un gioco di ruolo. Ricostruiscila come modello digitale: '+
+             'riconosci sezioni, campi, caratteristiche, abilità, contatori e le formule che li legano.\n\n'+SCHEMA_SPEC}]}],
+        'Sei un progettista di schede per giochi di ruolo. Rispondi solo con JSON valido.',8000);
+      const sch=parseJSON(txt);
+      sch.id=sch.id||uid('sch'); sch.sections=sch.sections||[];
+      await DB.writeJSON(Paths.schema(sch.id),sch); S.schemas[sch.id]=sch;
+      m.close();
+      if(await ask('Modello pronto',`<b>${esc(sch.name)}</b> · ${sch.sections.length} sezioni, ${sch.sections.reduce((n,s)=>n+s.fields.length,0)} campi.<br>Creo subito un personaggio con questo modello?`,'Crea personaggio')){
+        const c=newChar(sch.id,'Nuovo '+sch.name);await saveChar(c);
+        S.char=c;S.cfg.lastChar=c.id;saveCfg();S.tab='scheda';
+      }
+      render();
+    }catch(e){ m.close(); modal(`<h2>Non ci sono riuscito</h2><p class="faint" style="margin:10px 0">${esc(e.message)}</p>
+      <button class="btn" style="width:100%" data-close>Chiudi</button>`) }
+  },
+
+  /* ------------- indicizza un manuale di regole ------------- */
+  async importaregole(){
+    const [f]=await pickFile('application/pdf');if(!f)return;
+    const m=modal(`<h2>Indicizzo il manuale</h2><p class="faint" style="margin:10px 0">
+      <span class="busy"></span> <span id="prog">Apro ${esc(f.name)}…</span></p>`);
+    try{
+      await loadPdfJs();
+      const buf=await f.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+      const chunks=[];let acc='',accPage=1;
+      for(let p=1;p<=pdf.numPages;p++){
+        const page=await pdf.getPage(p);
+        const tc=await page.getTextContent();
+        const t=tc.items.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim();
+        acc+=' '+t;
+        if(acc.length>1400){ chunks.push({p:accPage,t:acc.trim()}); acc=''; accPage=p }
+        if(p%5===0) $('#prog',m.el).textContent=`Pagina ${p} di ${pdf.numPages}…`;
+      }
+      if(acc.trim()) chunks.push({p:accPage,t:acc.trim()});
+      const rec={id:uid('reg'),name:f.name.replace(/\.pdf$/i,''),pages:pdf.numPages,chunks,added:nowISO()};
+      await DB.writeJSON(Paths.rules(rec.id),rec); S.rules.push(rec);
+      m.close();toast(`${chunks.length} sezioni indicizzate`);render();
+    }catch(e){ m.close(); modal(`<h2>PDF non leggibile</h2><p class="faint" style="margin:10px 0">${esc(e.message)}<br><br>
+      Se è una scansione senza testo, il testo va estratto prima con un OCR.</p>
+      <button class="btn" style="width:100%" data-close>Chiudi</button>`) }
+  },
+
+  async chiediregole(){
+    const q=$('#ruleQ').value.trim(); if(!q) return;
+    const out=$('#ruleA');
+    if(!S.rules.length){out.innerHTML='<div class="faint">Carica prima almeno un manuale.</div>';return}
+    const hits=searchRules(q,8);
+    if(!hits.length){out.innerHTML='<div class="faint">Nessun passaggio trovato con queste parole.</div>';return}
+    if(!S.cfg.apiKey){
+      out.innerHTML=`<div class="eyebrow">Passaggi trovati</div>`+hits.slice(0,4).map(h=>
+        `<div class="card" style="margin-top:8px"><div class="faint">${esc(h.src)} · p. ${h.p}</div>
+         <div style="font-size:13px;margin-top:4px">${esc(h.t.slice(0,400))}…</div></div>`).join('');
+      return;
+    }
+    out.innerHTML='<span class="busy"></span> <span class="faint">Cerco nelle regole…</span>';
+    try{
+      let ctx=hits.map((h,i)=>`[${i+1}] ${h.src}, p.${h.p}\n${h.t}`).join('\n\n');
+      let extra='';
+      if($('#ruleCtx').checked&&S.char){
+        const sc=computeAll(S.char,schemaOf(S.char));
+        extra=`\n\nPersonaggio aperto: ${S.char.name} (${schemaOf(S.char).name}).\nValori: ${
+          JSON.stringify(sc).slice(0,1500)}`;
+      }
+      const txt=await claude([{role:'user',content:
+        `Domanda: ${q}\n\nEstratti dal manuale:\n${ctx}${extra}`}],
+        'Rispondi in italiano, in modo breve e pratico, come farebbe un arbitro esperto al tavolo. '+
+        'Usa solo gli estratti forniti; se non bastano, dillo. Cita il numero di pagina tra parentesi. '+
+        'Se è utile, indica il tiro da fare nel formato 1d20+X.',1500);
+      out.innerHTML=`<div class="card" style="border-color:var(--gold)"><div class="ask">${esc(txt)}</div></div>`;
+    }catch(e){ out.innerHTML=`<div class="faint">${esc(e.message)}</div>` }
+  },
+
+  /* ------------- editor dei modelli ------------- */
+  editschema(){
+    const opts=Object.values(S.schemas).map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+    modal(`<h2>Modelli di scheda</h2>
+      <label class="f" style="margin:12px 0"><span>Modello</span><select id="s">${opts}</select></label>
+      <div id="ed"></div>`,
+    (el,close)=>{
+      const draw=()=>{
+        const sch=structuredClone(S.schemas[$('#s',el).value]);
+        $('#ed',el).innerHTML=`
+          <div class="row" style="margin-bottom:8px"><div class="eyebrow grow">${sch.sections.length} sezioni</div>
+            <button class="btn sm" id="addsec">＋ sezione</button></div>
+          ${sch.sections.map((s,si)=>`<details class="section"><summary>${esc(s.title)}</summary><div class="body">
+            <div class="grid g2" style="margin-bottom:8px">
+              <label class="f"><span>Titolo</span><input data-s="${si}" data-k="title" value="${esc(s.title)}"></label>
+              <label class="f"><span>Colonne</span><select data-s="${si}" data-k="layout">
+                ${['stack','g2','g3','g4'].map(l=>`<option ${s.layout===l?'selected':''}>${l}</option>`).join('')}</select></label>
+            </div>
+            ${s.fields.map((f,fi)=>`<div class="card" style="padding:9px;margin-bottom:7px">
+              <div class="grid g2">
+                <label class="f"><span>Etichetta</span><input data-s="${si}" data-fi="${fi}" data-k="label" value="${esc(f.label)}"></label>
+                <label class="f"><span>Id</span><input data-s="${si}" data-fi="${fi}" data-k="id" value="${esc(f.id)}"></label>
+                <label class="f"><span>Tipo</span><select data-s="${si}" data-fi="${fi}" data-k="type">
+                  ${['text','longtext','number','stat','formula','check','select','tracker','pips','skill','percent','list']
+                    .map(x=>`<option ${f.type===x?'selected':''}>${x}</option>`).join('')}</select></label>
+                <label class="f"><span>Formula / attributo</span><input data-s="${si}" data-fi="${fi}" data-k="${f.type==='skill'?'attr':'expr'}" value="${esc(f.type==='skill'?(f.attr||''):(f.expr||''))}"></label>
+                <label class="f"><span>Tiro</span><input data-s="${si}" data-fi="${fi}" data-k="roll" value="${esc(f.roll||'')}" placeholder="1d20+{id}"></label>
+                <div style="display:flex;align-items:flex-end"><button class="btn sm danger" data-delf="${si}.${fi}">Elimina campo</button></div>
+              </div></div>`).join('')}
+            <button class="btn sm" data-addf="${si}">＋ campo</button>
+            <button class="btn sm danger" data-dels="${si}" style="float:right">Elimina sezione</button>
+          </div></details>`).join('')}
+          <div class="row" style="margin-top:14px"><button class="btn grow" data-close>Chiudi</button>
+            <button class="btn primary grow" id="save">Salva modello</button></div>`;
+
+        const apply=()=>{
+          $$('[data-k]',el).forEach(i=>{
+            const si=+i.dataset.s;
+            if(i.dataset.fi===undefined){ sch.sections[si][i.dataset.k]=i.value }
+            else{ const f=sch.sections[si].fields[+i.dataset.fi];
+                  if(i.value==='') delete f[i.dataset.k]; else f[i.dataset.k]=i.value }
+          });
+        };
+        $$('[data-delf]',el).forEach(b=>b.onclick=()=>{apply();const[si,fi]=b.dataset.delf.split('.').map(Number);
+          sch.sections[si].fields.splice(fi,1);S.schemas[sch.id]=sch;draw()});
+        $$('[data-dels]',el).forEach(b=>b.onclick=()=>{apply();sch.sections.splice(+b.dataset.dels,1);S.schemas[sch.id]=sch;draw()});
+        $$('[data-addf]',el).forEach(b=>b.onclick=()=>{apply();
+          sch.sections[+b.dataset.addf].fields.push({id:'campo'+Math.floor(Math.random()*999),label:'Nuovo campo',type:'text'});
+          S.schemas[sch.id]=sch;draw()});
+        $('#addsec',el).onclick=()=>{apply();
+          sch.sections.push({id:'sez'+Math.floor(Math.random()*999),title:'Nuova sezione',layout:'g2',fields:[]});
+          S.schemas[sch.id]=sch;draw()};
+        $('#save',el).onclick=async()=>{apply();
+          await DB.writeJSON(Paths.schema(sch.id),sch);S.schemas[sch.id]=sch;close();render();toast('Modello salvato')};
+        $$('[data-close]',el).forEach(b=>b.onclick=close);
+      };
+      $('#s',el).onchange=draw; draw();
+    });
+  },
+
+  /* ------------- backup ------------- */
+  async esporta(){
+    const pack={v:1,exported:nowISO(),cfg:{...S.cfg,apiKey:''},schemas:[],chars:[],rules:S.rules,sessions:[],files:{}};
+    for(const p of await DB.list('schemi')) pack.schemas.push(await DB.readJSON(p));
+    for(const c of S.chars){
+      const full=await DB.readJSON(Paths.char(c.id)); pack.chars.push(full);
+      for(const a of full.attachments||[]){
+        try{ const b=await DB.readBlob(a.path); if(b) pack.files[a.path]=await toB64(b) }
+        catch(err){ console.warn('allegato non esportabile:',a.path) }
+      }
+    }
+    for(const p of await DB.list('sessioni')) pack.sessions.push(await DB.readJSON(p));
+    download('tavolo-backup-'+new Date().toISOString().slice(0,10)+'.json',
+      new Blob([JSON.stringify(pack)],{type:'application/json'}));
+  },
+  async importa(){
+    const [f]=await pickFile('application/json');if(!f)return;
+    if(!await ask('Importa backup','Le schede con lo stesso identificativo vengono sovrascritte.','Importa')) return;
+    const pack=JSON.parse(await f.text());
+    for(const s of pack.schemas||[]) await DB.writeJSON(Paths.schema(s.id),s);
+    for(const c of pack.chars||[]) await DB.writeJSON(Paths.char(c.id),c);
+    for(const r of pack.rules||[]) await DB.writeJSON(Paths.rules(r.id),r);
+    for(const s of pack.sessions||[]) await DB.writeJSON(Paths.session(s.id),s);
+    for(const p in pack.files||{}){
+      const bin=Uint8Array.from(atob(pack.files[p]),ch=>ch.charCodeAt(0));
+      await DB.writeBlob(p,new Blob([bin]));
+    }
+    await loadIndex();render();toast('Backup importato');
+  },
+});
+
+/* ricerca testuale nei manuali: pesa le parole della domanda */
+function searchRules(q,n=8){
+  const words=q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .split(/[^a-z0-9àèéìòù]+/).filter(w=>w.length>3);
+  const out=[];
+  for(const r of S.rules) r.chunks.forEach(c=>{
+    const t=c.t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    let sc=0; words.forEach(w=>{ const m=t.split(w).length-1; if(m) sc+=1+Math.log(m) });
+    if(sc>0) out.push({...c,src:r.name,score:sc});
+  });
+  return out.sort((a,b)=>b.score-a.score).slice(0,n);
+}
+let pdfLoaded=false;
+function loadPdfJs(){
+  if(pdfLoaded&&window.pdfjsLib) return Promise.resolve();
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=()=>{ pdfjsLib.GlobalWorkerOptions.workerSrc=
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      pdfLoaded=true;res() };
+    s.onerror=()=>rej(new Error('Non riesco a caricare il lettore PDF. Serve la rete.'));
+    document.head.appendChild(s);
+  });
+}
+
+/* ================================================================== Avvio  */
+$('#btnDice').onclick=()=>ACT.dadolibero();
+$('#btnFolder').onclick=async()=>{
+  if(DB.pending&&await DB.resume()){ await loadIndex();render();toast('Cartella ricollegata');return }
+  ACT.cartella();
+};
+
+/* trascinamento file sulla scheda */
+['dragover','dragleave','drop'].forEach(ev=>document.addEventListener(ev,e=>{
+  const dz=$('#dropzone'); if(!dz||!S.char) return;
+  e.preventDefault();
+  if(ev==='dragover') dz.classList.add('over');
+  else dz.classList.remove('over');
+  if(ev==='drop'&&e.dataTransfer.files.length) addAttachments([...e.dataTransfer.files]);
+}));
+
+document.addEventListener('keydown',e=>{
+  if(e.target.matches('input,textarea,select')) return;
+  if(e.key==='r'&&S.char) ACT.dadolibero();
+  if(e.key==='Escape') $$('.scrim,.rolltoast').forEach(x=>x.remove());
+});
+
+(async function boot(){
+  try{
+    await DB.init();
+    await loadIndex();
+    if(S.cfg.lastChar){ const c=await DB.readJSON(Paths.char(S.cfg.lastChar)); if(c) S.char=c }
+    S.tab = S.char ? 'scheda' : 'personaggi';
+    render();
+    if(DB.pending) toast('Tocca 📁 per ricollegare la cartella');
+  }catch(err){
+    $('#view').innerHTML=`<div class="card"><h2>Avvio non riuscito</h2>
+      <p class="faint">${esc(err.message)}</p></div>`;
+  }
+})();
+</script>
+</body>
+</html>
