@@ -283,6 +283,38 @@ hr.sep{border:0;height:1px;margin:13px 0;background:linear-gradient(90deg,transp
   box-shadow:inset 0 0 0 1px rgba(201,162,39,.5);flex:none}
 .lmode[aria-pressed=true]{background:rgba(201,162,39,.25);color:#FFF3CF}
 
+/* ---------------- scheda in stile cartaceo ---------------- */
+.cartawrap{overflow:hidden;margin-bottom:12px}
+.carta{width:860px;transform-origin:top left;color:var(--ink)}
+.carta .box{position:relative;border-radius:8px;padding:9px 10px;margin-bottom:8px;
+  background:rgba(255,255,255,.42);box-shadow:inset 0 0 0 1.5px var(--m2),inset 0 0 0 3px rgba(255,255,255,.28)}
+.carta .box>.tt{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-faint);text-align:center;margin-top:5px}
+.carta .cols{display:grid;grid-template-columns:200px 1fr 1fr;gap:10px;align-items:start}
+.carta .band{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.carta .band .nome{font-family:var(--display);font-size:27px;font-weight:700;line-height:1.1}
+.carta .band input{background:transparent;border:0;padding:0;font-family:var(--display);font-size:16px}
+.carta .abi{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:13px}
+.carta .abi .pb{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px var(--m2)}
+.carta .abi .pb.on{background:var(--m2)}
+.carta .abi .nv{font-family:var(--mono);font-weight:700;width:26px;text-align:right}
+.carta .abi .an{flex:1}
+.carta .abi .aa{font-size:10px;color:var(--ink-faint);text-transform:uppercase;font-family:var(--mono)}
+.carta .car{text-align:center;padding:7px 4px 5px}
+.carta .car .cn{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+.carta .car .cv{font-family:var(--display);font-size:30px;font-weight:700;line-height:1}
+.carta .car .cm{display:inline-block;font-family:var(--mono);font-size:14px;font-weight:700;
+  padding:1px 12px;border-radius:999px;margin-top:3px;color:#2A2007}
+.carta .tri{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.carta .big{font-family:var(--mono);font-size:26px;font-weight:700;text-align:center;line-height:1.1}
+.carta .mini{font-family:var(--mono);font-size:11px;text-align:center;color:var(--ink-faint)}
+.carta table{width:100%;border-collapse:collapse;font-size:12px}
+.carta th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);text-align:left;padding:0 4px 4px}
+.carta td{padding:2px 4px;border-bottom:1px solid rgba(0,0,0,.12)}
+.carta textarea{background:transparent;border:0;padding:0;font-size:12.5px;min-height:56px;resize:none}
+.cartabar{display:flex;gap:7px;align-items:center;margin-bottom:10px}
+
 </style>
 </head>
 <body>
@@ -477,6 +509,221 @@ var CLASSE_STATI={
 
 </script>
 <script>
+/* Le sei classi mancanti. Privilegi dal System Reference Document di
+   Wizards of the Coast, licenza Creative Commons Attribuzione 4.0.
+   Vengono unite a quelle già presenti in app.js. */
+var CLASSI_EXTRA={
+ druido:{n:'Druido',dv:8,inc:'pieno',carat:'sag',ts:['int','sag'],abil:2,
+  arm:'Armature leggere e medie non metalliche, scudi, randelli, pugnali, giavellotti, bastoni, falcetti',
+  f:[
+   ['Druidico',1,'both','Il linguaggio segreto dei druidi: lasci messaggi nascosti che solo chi lo conosce individua.'],
+   ['Forma selvatica',2,'both','Due volte per riposo breve ti trasformi in una bestia che hai già visto, con grado di sfida e capacità di movimento limitati dal livello.'],
+   ['Circolo druidico',2,'both','La sottoclasse: circolo della terra, della luna e gli altri.'],
+   ['Corpo senza tempo',18,'both','Il tuo corpo invecchia molto più lentamente: per ogni dieci anni ne passa uno.'],
+   ['Incantesimi delle bestie',18,'both','Puoi lanciare molti dei tuoi incantesimi anche mentre sei in forma selvatica.'],
+   ['Arcidruido',20,'both','Usi la Forma selvatica quante volte vuoi e ignori le componenti verbali e somatiche dei tuoi incantesimi.']
+  ]},
+ monaco:{n:'Monaco',dv:8,inc:'nessuno',carat:'des',ts:['forza','des'],abil:2,
+  arm:'Armi semplici, spade corte, uno strumento da artigiano o musicale',
+  f:[
+   ['Difesa senza armatura',1,'both','Senza armatura né scudo la tua Classe Armatura è 10 più il modificatore di Destrezza più quello di Saggezza.'],
+   ['Arti marziali',1,'both','Usi la Destrezza per colpi senza armi e armi da monaco, i danni seguono un dado che cresce col livello, e con un\u2019azione bonus attacchi ancora.'],
+   ['Ki',2,'both','Punti ki pari al tuo livello: Raffica di colpi, Difesa paziente e Passo del vento. Tornano con il riposo breve.'],
+   ['Movimento senza armatura',2,'both','La velocità aumenta di 3 m senza armatura, e cresce ancora ai livelli successivi.'],
+   ['Tradizione monastica',3,'both','La sottoclasse: via della mano aperta, dell\u2019ombra, dei quattro elementi.'],
+   ['Deviare i proiettili',3,'both','Come reazione riduci i danni di un attacco a distanza di 1d10 più destrezza e livello; se li azzeri, rilanci il proiettile.'],
+   ['Caduta lenta',4,'both','Come reazione riduci i danni da caduta di cinque volte il tuo livello.'],
+   ['Attacco extra',5,'both','Quando esegui l\u2019azione di attacco, attacchi due volte.'],
+   ['Colpo stordente',5,'both','Spendendo 1 punto ki, chi colpisci resta stordito fino al tuo turno successivo se fallisce un tiro salvezza su Costituzione.'],
+   ['Purezza del corpo',10,'both','Immune a malattie e veleni.'],
+   ['Palmo tremante',17,'both','Spendendo 3 punti ki imponi vibrazioni letali: puoi scatenarle entro alcuni giorni per infliggere 10d10 danni necrotici.']
+  ]},
+ paladino:{n:'Paladino',dv:10,inc:'mezzo',carat:'car',ts:['sag','car'],abil:2,
+  arm:'Tutte le armature, scudi, tutte le armi',
+  f:[
+   ['Percezione del divino',1,'both','Rilevi celestiali, immondi e non morti entro 18 m, e i luoghi o oggetti consacrati o profanati.'],
+   ['Imposizione delle mani',1,'both','Un serbatoio di punti ferita pari a cinque volte il tuo livello, da distribuire col tocco. Spendendone cinque curi una malattia o un veleno.'],
+   ['Stile di combattimento',2,'both','Difesa, duello, protezione o armi grandi.'],
+   ['Punizione divina',2,'both','Quando colpisci in mischia, spendi uno slot per infliggere 2d8 danni radiosi extra, più 1d8 per ogni livello di slot oltre il primo.'],
+   ['Salute divina',3,'both','Sei immune alle malattie.'],
+   ['Giuramento sacro',3,'both','La sottoclasse: devozione, antichi, vendetta. Concede incantesimi e usi di Incanalare divinità.'],
+   ['Attacco extra',5,'both','Quando esegui l\u2019azione di attacco, attacchi due volte.'],
+   ['Aura di protezione',6,'both','Tu e gli alleati entro 3 m aggiungete il tuo modificatore di Carisma a tutti i tiri salvezza.'],
+   ['Aura di coraggio',10,'both','Tu e gli alleati entro 3 m non potete essere spaventati.'],
+   ['Colpo divino migliorato',11,'both','Ogni tuo attacco in mischia infligge 1d8 danni radiosi extra.']
+  ]},
+ ranger:{n:'Ranger',dv:10,inc:'mezzo',carat:'sag',ts:['forza','des'],abil:3,
+  arm:'Armature leggere e medie, scudi, armi semplici e da guerra',
+  f:[
+   ['Nemico prescelto',1,'2014','Vantaggio alle prove di Sopravvivenza per seguire una categoria di creature e a quelle di Intelligenza per ricordarne le abitudini.'],
+   ['Esploratore esperto',1,'2014','Il terreno difficile non ti rallenta nel tuo ambiente prescelto e il gruppo si perde solo per magia.'],
+   ['Cacciatore esperto',1,'2024','Un incantesimo sempre preparato, competenza in un\u2019abilità aggiuntiva e vantaggio alle prove per inseguire.'],
+   ['Stile di combattimento',2,'both','Arciere, difesa, duello o combattere con due armi.'],
+   ['Incantesimi',2,'both','Magia da mezzo incantatore basata sulla Saggezza: gli slot arrivano più lentamente di quelli di un mago.'],
+   ['Archetipo del ranger',3,'both','La sottoclasse: cacciatore, signore delle bestie e le altre.'],
+   ['Consapevolezza primordiale',3,'both','Spendendo uno slot percepisci la presenza di alcuni tipi di creature entro 1,5 km.'],
+   ['Attacco extra',5,'both','Quando esegui l\u2019azione di attacco, attacchi due volte.'],
+   ['Terra natia',8,'both','Il terreno difficile non ti rallenta più nemmeno fuori dai tuoi ambienti prescelti.'],
+   ['Scomparire',14,'both','Puoi Nasconderti con un\u2019azione bonus e non puoi essere rintracciato per via magica.'],
+   ['Sensi ferini',18,'both','Percepisci con esattezza la posizione delle creature invisibili entro 9 m.']
+  ]},
+ stregone:{n:'Stregone',dv:6,inc:'pieno',carat:'car',ts:['cos','car'],abil:2,
+  arm:'Pugnali, dardi, fionde, bastoni ferrati, balestre leggere',
+  f:[
+   ['Origine stregonesca',1,'both','La sottoclasse: discendenza draconica, magia selvaggia e le altre. Definisce da dove viene il tuo potere.'],
+   ['Fonte di magia',2,'both','Punti stregoneria pari al tuo livello: li converti in slot e viceversa.'],
+   ['Metamagia',3,'both','Modifichi i tuoi incantesimi: accelerati, potenziati, prolungati, sottili, gemelli, distanti.'],
+   ['Restauro stregonesco',20,'both','Con un riposo breve recuperi 4 punti stregoneria.']
+  ]},
+ warlock:{n:'Warlock',dv:8,inc:'patto',carat:'car',ts:['sag','car'],abil:2,
+  arm:'Armature leggere, armi semplici',
+  f:[
+   ['Patrono ultraterreno',1,'both','La sottoclasse: il Immondo, l\u2019Arcifata, il Grande Antico. Concede incantesimi ampliati e privilegi.'],
+   ['Magia del patto',1,'both','Pochi slot, sempre del livello più alto che puoi lanciare, che tornano con il riposo breve.'],
+   ['Suppliche occulte',2,'both','Doni permanenti scelti da un elenco: vista del diavolo, maschera di molte facce, agonia dell\u2019anima.'],
+   ['Dono del patto',3,'both','Patto della Lama, del Tomo o della Catena.'],
+   ['Arcanum mistico',11,'both','Un incantesimo di 6° livello lanciabile una volta per riposo lungo senza spendere slot. Se ne aggiunge uno ogni due livelli.'],
+   ['Maestro del destino',20,'both','Con un riposo breve o lungo recuperi tutti gli slot della Magia del patto.']
+  ]}
+};
+/* Slot per mezzi incantatori (paladino e ranger) e per il warlock */
+var SLOT_MEZZI={2:[2],3:[3],4:[3],5:[4,2],6:[4,2],7:[4,3],8:[4,3],9:[4,3,2],10:[4,3,2],
+ 11:[4,3,3],12:[4,3,3],13:[4,3,3,1],14:[4,3,3,1],15:[4,3,3,2],16:[4,3,3,2],
+ 17:[4,3,3,3,1],18:[4,3,3,3,1],19:[4,3,3,3,2],20:[4,3,3,3,2]};
+var SLOT_PATTO={1:[1,1],2:[2,1],3:[2,2],4:[2,2],5:[2,3],6:[2,3],7:[2,4],8:[2,4],9:[2,5],
+ 10:[2,5],11:[3,5],12:[3,5],13:[3,5],14:[3,5],15:[3,5],16:[3,5],17:[4,5],18:[4,5],19:[4,5],20:[4,5]};
+
+</script>
+<script>
+/* Secondo blocco di incantesimi SRD (Wizards of the Coast, CC BY 4.0). */
+var SRD_INC2=[
+["Assistenza",0,"Abiurazione","1 azione","Contatto","Concentrazione, 1 minuto","cp","La creatura toccata aggiunge 1d4 a una prova di caratteristica o a un tiro salvezza."],
+["Bagliore lunare",0,"Evocazione","1 azione","36 m","Istantaneo","d","Attacco a distanza con incantesimo per 1d10 danni radiosi; il bersaglio non beneficia dell'invisibilità fino al tuo turno successivo."],
+["Contatto gelido",0,"Necromanzia","1 azione","36 m","Istantaneo","msw","Attacco a distanza per 1d8 danni necrotici: il bersaglio non recupera punti ferita fino al tuo turno successivo."],
+["Frusta di spine",0,"Trasmutazione","1 azione","9 m","Istantaneo","d","Attacco in mischia con incantesimo per 1d6 danni perforanti; trascini il bersaglio di 3 m verso di te."],
+["Guida divina",0,"Divinazione","1 azione","Contatto","Concentrazione, 1 minuto","cd","Chi tocchi aggiunge 1d4 a una prova a sua scelta prima che l'incantesimo termini."],
+["Manipolare fiamme",0,"Trasmutazione","1 azione","9 m","Istantaneo o 1 ora","d","Accendi, spegni, allarghi o restringi una fiamma non più grande di una torcia."],
+["Messaggio",0,"Trasmutazione","1 azione","36 m","1 round","msw","Mormori un messaggio a una creatura che puoi vedere: solo lei lo sente e può rispondere sottovoce."],
+["Onda purificatrice",0,"Evocazione","1 azione","9 m","Istantaneo","d","Elimini spore, muffe e parassiti da una creatura o da un'area di 1,5 m."],
+["Riparo dalla morte",0,"Necromanzia","1 azione","Contatto","1 minuto","c","Chi tocchi ottiene 1d4 più il tuo modificatore in punti ferita temporanei."],
+["Scossa elettrica",0,"Evocazione","1 azione","Contatto","Istantaneo","ms","Attacco in mischia con incantesimo per 1d8 danni da elettricità; il bersaglio non può usare reazioni."],
+["Spruzzo acido",0,"Evocazione","1 azione","18 m","Istantaneo","ms","Una o due creature vicine effettuano un tiro salvezza su Destrezza o subiscono 1d6 danni acidi."],
+["Stella filante",0,"Evocazione","1 azione","36 m","Istantaneo","c","Attacco a distanza per 1d8 danni radiosi; il bersaglio emette luce fioca fino al tuo turno successivo."],
+["Vero colpo",0,"Divinazione","1 azione","9 m","Concentrazione, 1 round","bmsw","Al tuo turno successivo hai vantaggio al primo attacco contro il bersaglio."],
+["Antipatia magica",1,"Ammaliamento","1 azione","18 m","Concentrazione, 1 minuto","bdmsw","Il bersaglio subisce svantaggio ai tiri per colpire contro di te."],
+["Ammorbidire",1,"Trasmutazione","1 azione","9 m","1 ora","dms","Trasformi pietra, legno o metallo in materiale morbido e lavorabile a mani nude."],
+["Chiusura arcana",2,"Abiurazione","1 azione","Contatto","Finché non è dissolto","ms","Sigilli una porta, una finestra o un contenitore: si apre solo con la parola d'ordine o con Scassinare a livello alto."],
+["Convocare famiglio",1,"Evocazione","1 ora","3 m","Finché non è dissolto","mw","Un servitore spiritico in forma di bestia: percepisce quello che percepisce lui e può lanciare incantesimi a contatto attraverso di lui."],
+["Corazza incantata",1,"Abiurazione","1 azione","Contatto","8 ore","ms","Chi tocchi, se non indossa armatura, ottiene Classe Armatura 13 più il modificatore di Destrezza."],
+["Dardo di fuoco",1,"Evocazione","1 azione","36 m","Istantaneo","ms","Attacco a distanza per 1d10 danni da fuoco; gli oggetti infiammabili non indossati prendono fuoco."],
+["Eroismo",1,"Ammaliamento","1 azione","Contatto","Concentrazione, 1 minuto","bp","La creatura toccata è immune allo spavento e all'inizio di ogni suo turno ottiene punti ferita temporanei."],
+["Fulmine tracciante",1,"Evocazione","1 azione","18 m","Istantaneo","ms","Un dardo di energia colpisce con un tiro per colpire: 3d6 danni da elettricità."],
+["Grido di guerra",1,"Ammaliamento","1 azione","Personale","Istantaneo","bp","Tu e gli alleati che ti sentono ottenete vantaggio al prossimo attacco e punti ferita temporanei."],
+["Identificare",1,"Divinazione","1 minuto","Contatto","Istantaneo","bm","Scopri le proprietà di un oggetto magico, come si usa e quali incantesimi lo hanno toccato di recente."],
+["Individuazione dei veleni",1,"Divinazione","1 azione","Personale","Concentrazione, 10 minuti","bdpr","Percepisci veleni, creature velenose e malattie entro 9 m."],
+["Marchio del cacciatore",1,"Divinazione","1 azione bonus","27 m","Concentrazione, 1 ora","r","Marchi una creatura: infliggi 1d6 danni extra quando la colpisci e hai vantaggio a rintracciarla."],
+["Nube di foschia",1,"Evocazione","1 azione","36 m","Concentrazione, 1 ora","dmrs","Una sfera di nebbia di 6 m rende l'area pesantemente oscurata."],
+["Punizione marchiante",1,"Abiurazione","1 azione bonus","Personale","Concentrazione, 1 minuto","p","Il tuo prossimo colpo infligge 2d6 danni radiosi e fa emettere luce al bersaglio, che non può diventare invisibile."],
+["Ritirata rapida",1,"Trasmutazione","1 azione bonus","Personale","Concentrazione, 10 minuti","msw","Puoi Scattare come azione bonus a ogni turno per la durata."],
+["Salto",1,"Trasmutazione","1 azione","Contatto","1 minuto","dmrs","La distanza dei salti della creatura toccata triplica."],
+["Scudo della fede",1,"Abiurazione","1 azione bonus","18 m","Concentrazione, 10 minuti","cp","Un campo luminoso concede 2 alla Classe Armatura di una creatura."],
+["Trama del ragno",2,"Evocazione","1 azione","18 m","Concentrazione, 1 ora","msw","Ragnatele riempiono un cubo di 6 m e trattengono chi fallisce un tiro salvezza su Destrezza."],
+["Aiuto",2,"Abiurazione","1 azione","9 m","8 ore","cp","Tre creature aumentano di 5 i punti ferita massimi e attuali."],
+["Arma magica",2,"Trasmutazione","1 azione bonus","Contatto","Concentrazione, 1 ora","mp","Un'arma non magica diventa magica con bonus di 1 ai tiri per colpire e ai danni."],
+["Bagliore accecante",2,"Evocazione","1 azione","9 m","Concentrazione, 1 minuto","c","Le creature entro 9 m subiscono 2d8 danni radiosi e restano accecate se falliscono un tiro salvezza su Costituzione."],
+["Calmare emozioni",2,"Ammaliamento","1 azione","18 m","Concentrazione, 1 minuto","bc","Sopprimi l'ostilità oppure l'ammaliamento e lo spavento nelle creature entro 6 m dal punto scelto."],
+["Cecità o sordità",2,"Necromanzia","1 azione","9 m","1 minuto","bcms","Il bersaglio resta accecato oppure assordato se fallisce un tiro salvezza su Costituzione."],
+["Custodire e proteggere",2,"Abiurazione","1 azione","Contatto","8 ore","bcmw","Un'area protetta da allarmi, terreno difficile o nebbia a tua scelta."],
+["Forza fantasma",2,"Illusione","1 azione","18 m","Concentrazione, 1 minuto","bms","Crei un'illusione nella mente del bersaglio, che gli infligge 1d6 danni psichici a ogni suo turno."],
+["Ingrandire o ridurre",2,"Trasmutazione","1 azione","9 m","Concentrazione, 1 minuto","ms","Raddoppi o dimezzi la taglia del bersaglio, con vantaggio o svantaggio alle prove di Forza e danni modificati."],
+["Localizza oggetto",2,"Divinazione","1 azione","Personale","Concentrazione, 10 minuti","bcdpr","Percepisci la direzione di un oggetto che conosci, se è entro 300 m."],
+["Passo velato di gruppo",2,"Trasmutazione","1 azione","Contatto","1 ora","dr","Tu e i tuoi compagni non lasciate tracce e avete vantaggio a nascondervi nella natura."],
+["Ristorare inferiore II",2,"Abiurazione","1 azione","Contatto","Istantaneo","bcdpr","Rimuovi una malattia oppure una condizione fra cecità, sordità, paralisi e avvelenamento."],
+["Scurovisione",2,"Trasmutazione","1 azione","Contatto","8 ore","dmrs","La creatura toccata vede al buio fino a 18 m."],
+["Sfocatura",2,"Illusione","1 azione","Personale","Concentrazione, 1 minuto","ms","Il tuo corpo diventa indistinto: chi ti attacca ha svantaggio, se non ha percezione che prescinde dalla vista."],
+["Silenzio della mente",2,"Abiurazione","1 azione","Personale","8 ore","bmsw","Sei protetto da divinazioni e dalla lettura dei pensieri."],
+["Sopravvivere nel deserto",2,"Trasmutazione","1 azione","Contatto","8 ore","dr","Fino a dieci creature resistono a caldo e freddo estremi e attraversano il terreno difficile naturale senza rallentare."],
+["Trasformazione ferina",2,"Trasmutazione","1 azione","Contatto","Concentrazione, 1 ora","dr","Doni a una creatura le caratteristiche di una bestia: artigli, velocità, arrampicarsi o nuotare."],
+["Zona sacra",2,"Abiurazione","1 minuto","9 m","24 ore","c","Immondi, non morti, fatati ed elementali non possono entrare né influenzare chi è nell'area."],
+["Chiaroveggenza",3,"Divinazione","10 minuti","1,5 km","Concentrazione, 10 minuti","bcms","Crei un sensore invisibile che ti permette di vedere o udire un luogo che conosci."],
+["Fulmine",3,"Evocazione","1 azione","Personale (linea 30 m)","Istantaneo","ms","Una saetta lunga 30 m: 8d6 danni da elettricità con tiro salvezza su Destrezza per dimezzare."],
+["Nube puzzolente",3,"Evocazione","1 azione","27 m","Concentrazione, 10 minuti","bms","Una sfera di gas nauseabondo: chi vi inizia il turno perde l'azione se fallisce un tiro salvezza su Costituzione."],
+["Paura",3,"Illusione","1 azione","Personale (cono 9 m)","Concentrazione, 1 minuto","bmsw","Le creature nel cono lasciano cadere ciò che tengono e restano spaventate, fuggendo se possibile."],
+["Protezione dall'energia",3,"Abiurazione","1 azione","Contatto","Concentrazione, 1 ora","cdmrs","La creatura toccata ottiene resistenza a un tipo di danno fra acido, freddo, fuoco, elettricità e tuono."],
+["Respirare sott'acqua",3,"Trasmutazione","1 azione","9 m","24 ore","dmrs","Fino a dieci creature respirano sott'acqua per un giorno."],
+["Rimuovi cecità o sordità",3,"Abiurazione","1 azione","Contatto","Istantaneo","cp","Curi la cecità oppure la sordità della creatura toccata."],
+["Scagliare maledizione",3,"Necromanzia","1 azione","Contatto","Concentrazione, 1 minuto","cmw","Maledici una creatura: svantaggio a una caratteristica, ai tiri contro di te, oppure danni necrotici extra."],
+["Sfera di fuoco ritardata",4,"Evocazione","1 azione","45 m","Concentrazione, 5 minuti","ms","Una sfera che accumula energia: quando esplode infligge 12d6 o più danni da fuoco in un raggio di 6 m."],
+["Guardiano della fede",4,"Evocazione","1 azione","9 m","8 ore","c","Un guardiano spettrale infligge danni radiosi o necrotici a chi si avvicina, fino a 60 danni totali."],
+["Libertà di movimento",4,"Abiurazione","1 azione","Contatto","1 ora","bcdr","La creatura toccata ignora terreno difficile, non può essere trattenuta o paralizzata da magia e sfugge alle prese."],
+["Occhio arcano",4,"Divinazione","1 azione","9 m","Concentrazione, 1 ora","m","Un sensore invisibile che voli fino a 9 m per turno e vede al buio: guardi attraverso di lui."],
+["Pelle di pietra",4,"Abiurazione","1 azione","Contatto","Concentrazione, 1 ora","dmrs","La creatura toccata ottiene resistenza ai danni contundenti, perforanti e taglienti non magici."],
+["Tempesta di ghiaccio",4,"Evocazione","1 azione","90 m","Istantaneo","dms","Grandine su un cilindro di 6 m: 2d8 contundenti e 4d6 da freddo, con tiro salvezza su Destrezza per dimezzare."],
+["Contagio",5,"Necromanzia","1 azione","Contatto","7 giorni","cd","Un attacco in mischia con incantesimo trasmette una malattia che porta svantaggi crescenti."],
+["Comunione con la natura",5,"Divinazione","1 minuto","Personale","Istantaneo","dr","Apprendi tre fatti sul territorio entro 5 km: terreno, insediamenti, creature potenti, presenze celestiali o immonde."],
+["Legare morti viventi",5,"Necromanzia","1 azione","18 m","24 ore","cw","Prendi il controllo di un non morto che fallisce un tiro salvezza su Carisma."],
+["Purificare",5,"Abiurazione","1 azione","Contatto","Istantaneo","bcdp","Termini tutte le malattie, i veleni, le maledizioni e le condizioni che affliggono una creatura."],
+["Scrutare",5,"Divinazione","10 minuti","Personale","Concentrazione, 10 minuti","bcdw","Osservi una creatura a qualunque distanza: più la conosci, più è difficile che resista al tiro salvezza."],
+["Trasformarsi in pietra",5,"Trasmutazione","1 azione","18 m","Concentrazione, 1 minuto","dms","La creatura si trasforma in pietra se fallisce due tiri salvezza su Costituzione."],
+["Circolo di teletrasporto",5,"Evocazione","1 minuto","3 m","1 round","bmsw","Un cerchio permanente che collega a un circolo che conosci."],
+["Barriera di lame",6,"Evocazione","1 azione","27 m","Concentrazione, 10 minuti","c","Un muro di lame vorticanti: 6d10 danni taglienti a chi lo attraversa o vi finisce il turno."],
+["Congiunzione planare",6,"Evocazione","1 minuto","18 m","1 ora","cdmw","Chiami una creatura da un altro piano e la convinci a rendere un servizio."],
+["Occhio della mente",6,"Divinazione","1 azione","Personale","Concentrazione, 1 ora","bmw","Percepisci l'ambiente circostante senza usare gli occhi e vedi le creature invisibili."],
+["Rigenerare",7,"Trasmutazione","1 minuto","Contatto","1 ora","bcd","La creatura recupera 4d8+15 punti ferita e ricresce gli arti perduti."],
+["Prigione magica",9,"Abiurazione","1 minuto","9 m","Finché non è dissolto","mw","Intrappoli una creatura in una gabbia magica che dura finché qualcuno non la libera."],
+["Guarigione di massa",9,"Evocazione","1 azione","18 m","Istantaneo","c","Curi fino a 700 punti ferita distribuiti fra le creature che scegli, liberandole da malattie e cecità."],
+["Meteora",9,"Evocazione","1 azione","1,5 km","Istantaneo","ms","Quattro sfere infuocate: 20d6 danni da fuoco e 20d6 contundenti in ogni raggio di 12 m, dimezzati con un tiro salvezza."]
+];
+
+</script>
+<script>
+"use strict";
+/* ========================================================== riconoscimento */
+var PIATT=(function(){
+  var ua=navigator.userAgent||'', p=navigator.platform||'';
+  var iPad = /iPad/.test(ua) || (p==='MacIntel'&&navigator.maxTouchPoints>1);
+  var iPhone = /iPhone|iPod/.test(ua);
+  var android = /Android/.test(ua);
+  var win = /Windows/.test(ua)&&!iPad;
+  var mac = /Macintosh/.test(ua)&&!iPad;
+  var linux = /Linux/.test(ua)&&!android;
+  var desktop = win||mac||linux;
+  return {
+    iPad:iPad, iPhone:iPhone, android:android, windows:win, mac:mac, linux:linux,
+    desktop:desktop, tocco:navigator.maxTouchPoints>0,
+    cartelle: typeof window.showDirectoryPicker==='function',
+    webgpu: !!navigator.gpu,
+    nome: win?'Windows':mac?'Mac':iPad?'iPad':iPhone?'iPhone':android?'Android':linux?'Linux':'questo dispositivo',
+    /* le funzioni pesanti hanno senso solo dove c'è memoria e scheda video */
+    studio: (win||mac||linux)&&!!navigator.gpu
+  };
+})();
+function modoStudio(){ return !!(PIATT.studio || (typeof S!=='undefined'&&S.cfg&&S.cfg.forzaStudio)) }
+function vistaPiattaforma(){
+  var p=PIATT;
+  return slab('<div class="eyebrow">Dispositivo</div>'+
+    '<div class="row" style="margin-top:8px;gap:10px;align-items:flex-start">'+
+    '<div class="big" style="font-family:var(--display);font-size:26px;font-weight:700;line-height:1">'+
+    esc(p.nome)+'</div><div class="grow faint" style="font-size:12.5px;line-height:1.55">'+
+    (modoStudio()
+      ? 'Modalit\u00e0 studio attiva: puoi ampliare il compendio e generare schede con un modello locale, '+
+        'poi mandare tutto al tablet come pacchetto.'
+      : 'Modalit\u00e0 tavolo: schede, dadi, sessioni e manuali. Le funzioni di preparazione stanno sul computer, '+
+        'e i loro risultati arrivano qui come pacchetto.')+
+    '</div></div>'+
+    '<div class="row wrap" style="margin-top:11px;gap:6px">'+
+    '<span class="pill">'+(p.cartelle?'cartelle sì':'cartelle no')+'</span>'+
+    '<span class="pill">'+(p.webgpu?'WebGPU sì':'WebGPU no')+'</span>'+
+    '<span class="pill">'+(p.tocco?'tocco':'mouse')+'</span></div>'+
+    (!PIATT.studio?'<label class="row" style="margin-top:12px;gap:9px">'+
+      '<input type="checkbox" data-forzastudio '+(S.cfg.forzaStudio?'checked':'')+
+      ' style="width:20px;height:20px;flex:none"><span class="grow faint" style="font-size:12.5px">'+
+      'Mostra comunque le funzioni di studio. Su questo dispositivo potrebbero non funzionare o bloccarsi.'+
+      '</span></label>':''));
+}
+
+</script>
+<script>
 "use strict";
 /* ==========================================================================
    TAVOLO — schede personaggio, manuali e sessioni
@@ -600,7 +847,7 @@ var DB={
   },
   choose:function(){
     var self=this;
-    if(!this.canFolder){ toast('Questo browser non apre cartelle: uso l\u2019archivio interno.'); return Promise.resolve(false) }
+    if(!this.canFolder){ spiegaCartella(); return Promise.resolve(false) }
     return window.showDirectoryPicker({mode:'readwrite',id:'tavolo'}).then(function(h){
       return h.requestPermission({mode:'readwrite'}).then(function(){
         return IDB.set('kv','root',h).then(function(){
@@ -636,7 +883,7 @@ var METALLI={
 var S={
   tab:'personaggi', pgs:[], pg:null, manuals:[], sess:null, sessioni:[], secChiuse:{}, tex:{}, texUrl:{}, bgUrl:'',
   cfg:{ mat:'marmo', met:'oro', polish:55, ring:3, orn:100, texop:100, bg:'#15140F',
-        hasBg:false, layout:'grid', sfoglio:'ricciolo', profili:[], lastPg:null,
+        hasBg:false, layout:'grid', sfoglio:'ricciolo', foglio:'adattivo', profili:[], lastPg:null,
         dadi:['1d20','1d20 van','2d6','1d8','1d6','1d100'] }
 };
 function applyTheme(){
@@ -819,6 +1066,12 @@ function dadoIspirazione(liv){
   var d='d6'; Object.keys(USI_ISPIRAZIONE).forEach(function(k){ if(liv>=+k) d=USI_ISPIRAZIONE[k] });
   return d;
 }
+function slotPatto(liv){
+  if(typeof SLOT_PATTO==='undefined') return [];
+  var p=SLOT_PATTO[liv]; if(!p) return [];
+  var out=[]; for(var i=0;i<p[1];i++) out.push(i===p[1]-1?p[0]:0);
+  return out;
+}
 function autoDnD(pg){
   var v=pg.values, cl=CLASSI[v.classe]||CLASSI.bardo, liv=clamp(Number(v.liv||1),1,20);
   var ed=pg.sys==='dnd24'?'2024':pg.sys==='dnd14'?'2014':'mix';
@@ -832,7 +1085,10 @@ function autoDnD(pg){
     cd:8+comp+modOf(v[cl.carat]),
     atkInc:comp+modOf(v[cl.carat]),
     percPass:10+modOf(v.sag)+((v.abil&&v.abil.percezione?v.abil.percezione:0)?comp:0),
-    slot: cl.inc==='pieno' ? (SLOT_PIENI[liv]||[]) : [],
+    slot: cl.inc==='pieno' ? (SLOT_PIENI[liv]||[])
+        : cl.inc==='mezzo' ? (typeof SLOT_MEZZI!=='undefined'?(SLOT_MEZZI[liv]||[]):[])
+        : cl.inc==='patto' ? slotPatto(liv) : [],
+    patto: cl.inc==='patto',
     dv: liv+'d'+cl.dv,
     tsComp: cl.ts,
     arm: cl.arm,
@@ -882,6 +1138,7 @@ var SISTEMI={
 };
 function nuovoPG(sys,nome){
   var v={};
+  if(SISTEMI[sys]&&SISTEMI[sys].fam==='custom') v={};else
   if(SISTEMI[sys].fam==='dnd'){
     v={classe:'bardo',liv:1,specie:'Umano',background:'Popolano',
        forza:10,des:10,cos:10,int:10,sag:10,car:10,abil:{},ts:{},pf:{cur:null},
@@ -916,7 +1173,9 @@ function savePG(pg){
 }
 var savePGSoon=debounce(function(){ if(S.pg) savePG(S.pg) },700);
 function sottotitolo(pg){
+  if(!SISTEMI[pg.sys]) return 'sistema non disponibile';
   var v=pg.values, s=SISTEMI[pg.sys].n;
+  if(SISTEMI[pg.sys].fam==='custom') return s;
   if(SISTEMI[pg.sys].fam==='dnd') return s+' · '+(CLASSI[v.classe]?CLASSI[v.classe].n:'')+' '+(v.liv||1);
   if(SISTEMI[pg.sys].fam==='fu') return s+' · livello '+(v.liv||5);
   if(SISTEMI[pg.sys].fam==='s7') return s+' · '+(v.nazione||'');
@@ -1040,7 +1299,10 @@ function viewScheda(){
     '<div class="faint">'+esc(sottotitolo(pg))+'</div></div>'+
     '<button class="btn sm" data-act="ritratto">Foto</button>'+
     '<button class="btn sm" data-act="menupg">⋯</button></div>');
-  var body={dnd:sheetDnD,fu:sheetFU,s7:sheetS7,nte:sheetNTE}[fam](pg);
+  var body;
+  if(fam==='custom'&&typeof sheetCustom==='function') body=sheetCustom(pg);
+  else if(fam==='dnd'&&S.cfg.foglio==='cartaceo'&&typeof sheetCarta==='function') body=sheetCarta(pg);
+  else body={dnd:sheetDnD,fu:sheetFU,s7:sheetS7,nte:sheetNTE}[fam](pg);
   var note=slab('<details class="sec"><summary>Appunti</summary>'+
     '<textarea data-notes rows="5" placeholder="Tutto quello che non entra nei campi.">'+esc(pg.notes||'')+'</textarea></details>');
   return head+body+note;
@@ -1674,6 +1936,22 @@ function viewAspetto(){
         '<button class="btn sm danger" data-delprof="'+i+'">✕</button></div>'}).join('')
      :'<p class="faint" style="margin:9px 0 0">Regola materiale e metallo, poi dai un nome alla combinazione.</p>'));
 
+  if(typeof vistaPiattaforma==='function') out+=vistaPiattaforma();
+  out+=slab('<div class="eyebrow">Contenuti</div>'+
+    '<p class="faint" style="margin:7px 0 10px;line-height:1.55">'+
+    (modoStudio()
+      ? 'Quello che aggiungi qui — voci di compendio e schede costruite — diventa un pacchetto '+
+        'da copiare sul tablet o da pubblicare a un indirizzo.'
+      : 'I contenuti preparati sul computer arrivano qui come pacchetto, da file o da un indirizzo.')+'</p>'+
+    '<div class="row wrap" style="gap:7px">'+
+    (modoStudio()?'<button class="mbtn metal" data-act="esportaPacchetto"><span>Esporta pacchetto</span></button>':'')+
+    '<button class="btn" data-act="importaPacchetto">Importa pacchetto</button>'+
+    '<button class="btn" data-act="sincro">Sincronizza</button>'+
+    '<button class="btn" data-act="schemiUser">Schede costruite</button>'+
+    (modoStudio()?'<button class="btn" data-act="iaPannello">Modello locale</button>':'')+
+    '</div>'+
+    (S.cfg.ultimoPacchetto?'<p class="faint" style="margin:10px 0 0">Ultimo aggiornamento: '+
+      esc(S.cfg.ultimoPacchetto.firma)+'</p>':''));
   out+=slab('<div class="eyebrow">Dati</div>'+
     '<p class="faint" style="margin:7px 0 10px">'+
     (DB.store&&DB.store.folder
@@ -2124,6 +2402,12 @@ document.addEventListener('input',function(e){
   }
   if(d.pfcur!==undefined){ v.pf.cur=Number(el.value||0); savePGSoon(); return }
   if(d.fucur!==undefined){ v[d.fucur]=Number(el.value||0); savePGSoon(); return }
+  if(d.trc!==undefined||d.trm!==undefined){
+    var id2=d.trc||d.trm, t2=v[id2]||{cur:0,max:0};
+    if(d.trc!==undefined) t2.cur=Number(el.value||0); else t2.max=Number(el.value||0);
+    v[id2]=t2; savePGSoon(); return;
+  }
+  if(d.forzastudio!==undefined){ S.cfg.forzaStudio=el.checked; saveCfg(); render(); return }
 },false);
 
 /* -------------------------------------------------------------- avvio */
@@ -2141,7 +2425,33 @@ document.addEventListener('keydown',function(e){
   if(e.key==='ArrowRight'&&RD.pdf&&$('#bw')) turnPage(1);
   if(e.key==='ArrowLeft'&&RD.pdf&&$('#bw')) turnPage(-1);
 });
+function spiegaCartella(){
+  var ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||
+    (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  modal('<h2 style="font-size:19px">Cartella non disponibile</h2>'+
+    '<p class="faint" style="margin:9px 0;line-height:1.6">'+
+    (ios? 'Safari non permette a nessun sito di scrivere in una cartella del dispositivo: '+
+          'la funzione esiste solo in Chrome ed Edge su computer. Non è un limite dell\u2019app.'
+        : 'Questo browser non supporta la scelta di una cartella. Chrome ed Edge su computer sì.')+
+    '</p><p class="faint" style="margin:0 0 12px;line-height:1.6">'+
+    'I tuoi dati sono comunque salvati e restano fra un\u2019apertura e l\u2019altra. '+
+    'Per portarli via o metterli al sicuro usa <b style="color:var(--ink)">Esporta backup</b>: '+
+    'ottieni un file che puoi salvare in File, su iCloud o mandarti via mail.</p>'+
+    (ios?'<p class="faint" style="margin:0 0 14px;line-height:1.6">'+
+      'Consiglio: aggiungi l\u2019app alla schermata Home. Le app aggiunte alla Home hanno '+
+      'archiviazione più stabile di una scheda del browser.</p>':'')+
+    '<div class="row"><button class="btn grow" data-close>Ho capito</button>'+
+    '<button class="mbtn metal grow" data-act="esporta"><span>Esporta ora</span></button></div>');
+}
+function chiediPersistenza(){
+  if(navigator.storage&&navigator.storage.persist){
+    navigator.storage.persisted().then(function(ok){
+      if(!ok) navigator.storage.persist().catch(function(){});
+    }).catch(function(){});
+  }
+}
 (function boot(){
+  chiediPersistenza();
   DB.init().then(loadAll).then(function(){
     if(S.cfg.lastPg) return DB.readJSON(P.pg(S.cfg.lastPg)).then(function(c){ if(c) S.pg=c });
   }).then(function(){
@@ -2177,7 +2487,7 @@ function viewCompendio(){
     'con licenza Creative Commons. Cercabili, e inseribili nelle schede con un tocco.</p>'+
     '<input id="cq" placeholder="Cerca un incantesimo, un\u2019arma, una condizione" data-cq>'+
     '<div class="row" style="margin-top:9px">'+
-    [['inc','Incantesimi'],['armi','Armi'],['cond','Condizioni'],['az','Azioni']].map(function(t){
+    [['inc','Incantesimi'],['armi','Armi'],['cond','Condizioni'],['az','Azioni'],['mie','Le mie voci']].map(function(t){
       return '<button class="btn sm grow" data-cs="'+t[0]+'"'+
         (S.compSez===t[0]?' style="box-shadow:inset 0 0 0 2px var(--m2)"':'')+'>'+t[1]+'</button>'}).join('')+
     '</div>');
@@ -2211,6 +2521,20 @@ function compLista(q){
       .map(function(c,i){
       return '<div class="line" data-det="ck'+i+'"><span class="grow">'+esc(c[0])+'</span>'+
         '<span class="pill">leggi</span></div><div class="det" id="ck'+i+'"><div class="body">'+esc(c[1])+'</div></div>'}).join('');
+  }else if(sez==='mie'){
+    var sys=(S.pg&&S.pg.sys)||'dnd24';
+    var voci=(S.compUser&&S.compUser[sys])||[];
+    voci=voci.filter(function(x){return !q||String(x.nome).toLowerCase().indexOf(q)>=0});
+    voci.sort(function(a,b){return String(a.nome).localeCompare(String(b.nome),'it')});
+    h='<p class="faint" style="margin:0 0 9px">Voci ricavate dai tuoi manuali per '+
+      esc(SISTEMI[sys]?SISTEMI[sys].n:sys)+'. Restano nella tua cartella.</p>'+
+      (voci.length?voci.map(function(x,i){
+        return '<div class="line" data-det="cu'+i+'"><span class="grow">'+esc(x.nome)+'</span>'+
+          '<span class="pill">'+esc(x.tipo||'regola')+'</span></div>'+
+          '<div class="det" id="cu'+i+'"><div class="body">'+esc(x.testo||'')+'</div></div>'}).join('')
+       :'<p class="faint">Ancora nessuna. Con un modello locale puoi ricavarle dai PDF che possiedi.</p>')+
+      '<button class="mbtn metal" style="width:100%;margin-top:11px" data-act="iaPannello">'+
+      '<span>Modello locale</span></button>';
   }else{
     h=SRD_AZIONI.filter(function(c){return !q||c[0].toLowerCase().indexOf(q)>=0})
       .map(function(c,i){
@@ -2776,8 +3100,591 @@ pageCanvas=function(n){
 </script>
 <script>
 "use strict";
+/* ================================================= scheda in stile cartaceo */
+function sheetCarta(pg){
+  var v=pg.values, A=autoDnD(pg);
+  if(v.pf.cur==null) v.pf.cur=A.pfMax;
+  var CAR=[['forza','Forza'],['des','Destrezza'],['cos','Costituzione'],
+           ['int','Intelligenza'],['sag','Saggezza'],['car','Carisma']];
+  function carBox(id,label){
+    var m=modOf(v[id]);
+    return '<div class="box car"><div class="cn">'+label+'</div>'+
+      '<input class="cv" type="number" inputmode="numeric" data-v="'+id+'" value="'+(v[id]||10)+'"'+
+      ' style="background:transparent;border:0;text-align:center;width:100%">'+
+      '<button class="cm metal" data-roll="1d20'+(m>=0?'+':'')+m+'" data-rl="'+label+'">'+
+      (m>=0?'+':'')+m+'</button></div>';
+  }
+  function riga(id,label,attr,comp,tot){
+    return '<div class="abi"><button class="pb'+(comp?' on':'')+'"'+
+      (attr?' data-abil="'+id+'"':'')+'></button>'+
+      '<span class="nv">'+(tot>=0?'+':'')+tot+'</span>'+
+      '<span class="an">'+label+'</span>'+
+      '<span class="aa">'+(attr||'')+'</span>'+
+      '<button class="pill" data-roll="1d20'+(tot>=0?'+':'')+tot+'" data-rl="'+esc(label)+'">d20</button></div>';
+  }
+  var ts=CAR.map(function(c){
+    var comp=A.tsComp.indexOf(c[0])>=0, tot=modOf(v[c[0]])+(comp?A.comp:0);
+    return riga('ts_'+c[0],c[1],null,comp,tot)}).join('');
+  var abil=ABIL5E.map(function(a){
+    var st=(v.abil&&v.abil[a[0]])||0;
+    var tot=modOf(v[a[2]])+(st===2?A.comp*2:st===1?A.comp:0);
+    return riga(a[0],a[1],a[2],st>0,tot)}).join('');
+  var slotHtml=A.slot.length?'<div class="box"><div class="tri" style="grid-template-columns:repeat(6,1fr)">'+
+    A.slot.map(function(n,i){ if(!n) return '';
+      var used=(v.slotUsati&&v.slotUsati[i+1])||0;
+      return '<div style="text-align:center"><div class="mini">'+(i+1)+'\u00b0</div>'+
+        '<div class="big" style="font-size:19px">'+(n-used)+'/'+n+'</div></div>'}).join('')+
+    '</div><div class="tt">'+(A.patto?'slot del patto':'slot incantesimo')+'</div></div>':'';
+
+  var html='<div class="carta" id="carta">'+
+   '<div class="band">'+
+    '<div class="box"><input class="nome" data-name value="'+esc(pg.name)+'" style="width:100%">'+
+     '<div class="tt">nome del personaggio</div></div>'+
+    '<div class="box"><input data-v="classe-disp" value="'+esc((CLASSI[v.classe]||{}).n||'')+' '+(v.liv||1)+'" readonly style="width:100%">'+
+     '<div class="tt">classe e livello</div></div>'+
+    '<div class="box"><input data-v="specie" value="'+esc(v.specie||'')+'" style="width:100%">'+
+     '<div class="tt">specie</div></div>'+
+    '<div class="box"><input data-v="background" value="'+esc(v.background||'')+'" style="width:100%">'+
+     '<div class="tt">background</div></div>'+
+   '</div>'+
+   '<div class="cols">'+
+    '<div>'+CAR.map(function(c){return carBox(c[0],c[1])}).join('')+'</div>'+
+    '<div>'+
+      '<div class="box" style="display:flex;align-items:center;gap:10px">'+
+        '<div class="big" style="min-width:56px">+'+A.comp+'</div>'+
+        '<div style="flex:1"><div class="tt" style="text-align:left;margin:0">bonus di competenza</div>'+
+        '<div class="mini" style="text-align:left">percezione passiva '+A.percPass+'</div></div></div>'+
+      '<div class="box">'+ts+'<div class="tt">tiri salvezza</div></div>'+
+      '<div class="box">'+abil+'<div class="tt">abilità</div></div>'+
+    '</div>'+
+    '<div>'+
+      '<div class="tri">'+
+        '<div class="box"><input class="big" type="number" data-v="ca" value="'+(v.ca||10)+'" style="background:transparent;border:0;width:100%">'+
+          '<div class="tt">armatura</div></div>'+
+        '<div class="box"><button class="big" style="width:100%" data-roll="1d20'+(A.iniz>=0?'+':'')+A.iniz+'" data-rl="Iniziativa">'+
+          (A.iniz>=0?'+':'')+A.iniz+'</button><div class="tt">iniziativa</div></div>'+
+        '<div class="box"><input class="big" type="number" data-v="vel" value="'+(v.vel||9)+'" style="background:transparent;border:0;width:100%">'+
+          '<div class="tt">velocità</div></div>'+
+      '</div>'+
+      '<div class="box"><div class="row" style="gap:6px;justify-content:center">'+
+        '<button class="btn sm" data-pf="-1">−</button>'+
+        '<input class="big" type="number" data-pfcur value="'+v.pf.cur+'" style="background:transparent;border:0;width:80px">'+
+        '<span class="mini" style="font-size:14px">/ '+A.pfMax+'</span>'+
+        '<button class="btn sm" data-pf="1">＋</button></div>'+
+        '<div class="tt">punti ferita · dadi vita '+A.dv+'</div></div>'+
+      slotHtml+
+      '<div class="box"><table><thead><tr><th>Arma</th><th>Tiro</th><th>Danni</th></tr></thead><tbody>'+
+        ((v.atk||[]).map(function(w,i){
+          return '<tr><td>'+esc(w.nome||'')+'</td>'+
+            '<td><button class="pill" data-rollrow="atk" data-i="'+i+'" data-tpl="1d20+{bonus}">'+esc(w.bonus||'')+'</button></td>'+
+            '<td><button class="pill" data-rollrow="atk" data-i="'+i+'" data-tpl="{danni}">'+esc(w.danni||'')+'</button></td></tr>'}).join('')
+         ||'<tr><td colspan="3" class="mini" style="text-align:left">nessuna arma</td></tr>')+
+        '</tbody></table><div class="tt">attacchi</div></div>'+
+      '<div class="box"><textarea data-v="equip" style="width:100%">'+esc(v.equip||'')+'</textarea>'+
+        '<div class="tt">equipaggiamento</div></div>'+
+    '</div>'+
+   '</div>'+
+   '<div class="cols" style="margin-top:10px;grid-template-columns:1fr 1fr">'+
+     '<div class="box"><div style="font-size:12.5px;line-height:1.55">'+
+       A.priv.map(function(f){return '<b style="font-weight:600">'+esc(f.n)+'</b> <span class="mini" style="display:inline">('+f.liv+')</span><br>'+
+         '<span style="color:var(--ink-dim)">'+esc(f.t)+'</span>'}).join('<br><br>')+
+       '</div><div class="tt">privilegi di classe</div></div>'+
+     '<div class="box"><div style="font-size:12.5px;line-height:1.6">'+
+       ((v.incant||[]).length?(v.incant||[]).map(function(s){
+         return '<b style="font-weight:600">'+esc(s.nome)+'</b> <span class="mini" style="display:inline">'+
+           (s.liv===0?'trucchetto':s.liv+'\u00b0')+'</span><br><span style="color:var(--ink-dim)">'+esc(s.note||'')+'</span>'}).join('<br><br>')
+        :'<span class="mini" style="text-align:left;display:block">nessun incantesimo</span>')+
+       '</div><div class="tt">incantesimi</div></div>'+
+   '</div>'+
+   '</div>';
+
+  return '<div class="cartabar">'+
+      '<button class="btn sm" data-foglio="adattivo">Adattivo</button>'+
+      '<button class="btn sm" data-foglio="cartaceo" style="box-shadow:inset 0 0 0 2px var(--m2)">Cartaceo</button>'+
+      '<span class="faint" style="flex:1;font-size:12px">Come la scheda di carta, rimpicciolita per lo schermo.</span>'+
+    '</div>'+slab('<div class="cartawrap" id="cw">'+html+'</div>');
+}
+function scalaCarta(){
+  var w=document.getElementById('cw'), c=document.getElementById('carta');
+  if(!w||!c) return;
+  var s=Math.min(1,w.clientWidth/860);
+  c.style.transform='scale('+s.toFixed(4)+')';
+  w.style.height=(c.scrollHeight*s)+'px';
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-foglio]');
+  if(!b) return;
+  S.cfg.foglio=b.dataset.foglio; saveCfgSoon(); render();
+},false);
+window.addEventListener('resize',function(){ setTimeout(scalaCarta,50) });
+
+</script>
+<script>
+"use strict";
+/* ==========================================================================
+   Modello locale (Qwen tramite WebLLM). Gira nel browser, sulla scheda video:
+   nessun dato esce dal dispositivo, nessuna chiave, nessun costo.
+   Serve a leggere un PDF che possiedi e ricavarne voci di compendio.
+   ========================================================================== */
+var IA={engine:null,modello:'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',stato:'spento',prog:''};
+var MODELLI=[
+ ['Qwen2.5-1.5B-Instruct-q4f16_1-MLC','Qwen 1.5B','circa 1,1 GB · veloce, impreciso'],
+ ['Qwen2.5-3B-Instruct-q4f16_1-MLC','Qwen 3B','circa 2,0 GB · equilibrato'],
+ ['Qwen2.5-7B-Instruct-q4f16_1-MLC','Qwen 7B','circa 4,4 GB · lento, migliore']
+];
+function iaDisponibile(){ return typeof navigator!=='undefined' && !!navigator.gpu }
+function iaCarica(onProg){
+  if(IA.engine) return Promise.resolve(IA.engine);
+  if(!iaDisponibile()) return Promise.reject(new Error(
+    'Questo browser non espone WebGPU, che serve per far girare il modello. '+
+    'Su computer usa Chrome o Edge aggiornati; su iPad serve Safari 18 o successivo.'));
+  IA.stato='caricamento';
+  return import('https://esm.run/@mlc-ai/web-llm').then(function(webllm){
+    return webllm.CreateMLCEngine(IA.modello,{initProgressCallback:function(p){
+      IA.prog=p.text||''; if(onProg) onProg(p.text||'', p.progress||0);
+    }});
+  }).then(function(e){ IA.engine=e; IA.stato='pronto'; return e });
+}
+function iaChiedi(sistema,utente,maxTok){
+  return IA.engine.chat.completions.create({
+    messages:[{role:'system',content:sistema},{role:'user',content:utente}],
+    temperature:0.1, max_tokens:maxTok||900
+  }).then(function(r){ return r.choices[0].message.content });
+}
+function jsonDaTesto(t){
+  var s=String(t).replace(/```json|```/g,'').trim();
+  var a=s.indexOf('['), b=s.lastIndexOf(']');
+  if(a<0){ a=s.indexOf('{'); b=s.lastIndexOf('}') }
+  if(a<0) throw new Error('Il modello non ha risposto in JSON.');
+  return JSON.parse(s.slice(a,b+1));
+}
+/* voci ricavate dai tuoi PDF: restano nella tua cartella, divise per gioco */
+function caricaCompUser(){
+  return DB.list('compendio').then(function(ps){
+    return Promise.all(ps.map(function(p){return DB.readJSON(p)}));
+  }).then(function(all){
+    S.compUser={};
+    all.filter(Boolean).forEach(function(f){ S.compUser[f.sys]=f.voci||[] });
+  }).catch(function(){ S.compUser={} });
+}
+function salvaCompUser(sys){
+  return DB.writeJSON('compendio/'+sys+'.json',{sys:sys,voci:S.compUser[sys]||[],agg:nowISO()});
+}
+ACT.iaPannello=function(){
+  var ok=iaDisponibile();
+  modal('<h2 style="font-size:19px">Modello locale</h2>'+
+    '<p class="faint" style="margin:9px 0;line-height:1.6">Scarica un modello Qwen una volta sola e '+
+    'gira sulla scheda video del dispositivo. Nessun dato esce da qui, nessuna chiave, nessun costo.</p>'+
+    (ok?'':'<p class="faint" style="margin:0 0 12px;color:#C2506A;line-height:1.6">'+
+      'Questo browser non espone WebGPU. Su computer serve Chrome o Edge aggiornati, '+
+      'su iPad Safari 18 o successivo. Senza, il resto dell\u2019app funziona lo stesso.</p>')+
+    '<label style="display:block;margin-bottom:11px"><span class="lab">Modello</span><select id="mm">'+
+    MODELLI.map(function(m){return '<option value="'+m[0]+'"'+(IA.modello===m[0]?' selected':'')+'>'+
+      m[1]+' — '+m[2]+'</option>'}).join('')+'</select></label>'+
+    '<div id="ip" class="faint" style="margin-bottom:11px">'+
+    (IA.stato==='pronto'?'Modello pronto.':'Non ancora caricato.')+'</div>'+
+    '<div class="row" style="gap:7px"><button class="mbtn metal grow" id="ic"'+(ok?'':' disabled')+'>'+
+    '<span>Carica il modello</span></button>'+
+    '<button class="btn grow" id="ix">Leggi un PDF</button></div>'+
+    '<p class="faint" style="margin:12px 0 0;line-height:1.6">Aspettative oneste: un modello da 1,5 miliardi '+
+    'di parametri sbaglia spesso i dettagli. Serve a preparare una bozza da correggere, non a fidarsi a occhi chiusi. '+
+    'Su iPad la memoria disponibile è poca: se si blocca, usa il computer.</p>'+
+    '<button class="btn" style="width:100%;margin-top:12px" data-close>Chiudi</button>',
+  function(el,close){
+    $('#mm',el).onchange=function(){ IA.modello=this.value; IA.engine=null; IA.stato='spento';
+      $('#ip',el).textContent='Modello cambiato: va ricaricato.' };
+    $('#ic',el).onclick=function(){
+      $('#ip',el).innerHTML='<span class="busy"></span> avvio…';
+      iaCarica(function(t,p){ $('#ip',el).innerHTML='<span class="busy"></span> '+esc(t) })
+      .then(function(){ $('#ip',el).textContent='Modello pronto.' })
+      .catch(function(e){ $('#ip',el).textContent=e.message });
+    };
+    $('#ix',el).onclick=function(){ close(); iaLeggiPDF() };
+  });
+};
+function iaLeggiPDF(){
+  if(!IA.engine) return toast('Carica prima il modello');
+  pickFile('application/pdf').then(function(fs){
+    if(!fs[0]) return;
+    var sys=(S.pg&&S.pg.sys)||'dnd24';
+    var m=modal('<h2 style="font-size:19px">Leggo il manuale</h2>'+
+      '<label style="display:block;margin:11px 0"><span class="lab">Aggiungi al compendio di</span>'+
+      '<select id="sy">'+Object.keys(SISTEMI).map(function(k){
+        return '<option value="'+k+'"'+(k===sys?' selected':'')+'>'+SISTEMI[k].n+'</option>'}).join('')+'</select></label>'+
+      '<label style="display:block;margin-bottom:11px"><span class="lab">Pagine (per esempio 120-140)</span>'+
+      '<input id="pp" placeholder="lascia vuoto per tutte"></label>'+
+      '<div id="st" class="faint" style="margin-bottom:11px">Pronto.</div>'+
+      '<div id="ris" style="max-height:40vh;overflow-y:auto"></div>'+
+      '<div class="row" style="margin-top:12px"><button class="btn grow" data-close>Chiudi</button>'+
+      '<button class="mbtn metal grow" id="go"><span>Estrai</span></button></div>',
+    function(el,close){
+      $('#go',el).onclick=function(){
+        var target=$('#sy',el).value, range=$('#pp',el).value.trim();
+        var trovate=[];
+        $('#st',el).innerHTML='<span class="busy"></span> apro il PDF…';
+        loadPdfJs().then(function(){ return fs[0].arrayBuffer() })
+        .then(function(buf){ return window.pdfjsLib.getDocument({data:buf}).promise })
+        .then(function(pdf){
+          var da=1, a=pdf.numPages;
+          var mm=range.match(/(\d+)\s*-\s*(\d+)/);
+          if(mm){ da=clamp(+mm[1],1,pdf.numPages); a=clamp(+mm[2],da,pdf.numPages) }
+          a=Math.min(a,da+39);
+          var testi=[], p=da;
+          function pagina(){
+            if(p>a) return Promise.resolve();
+            $('#st',el).innerHTML='<span class="busy"></span> pagina '+p+' di '+a;
+            return pdf.getPage(p).then(function(pg2){ return pg2.getTextContent() })
+              .then(function(tc){
+                testi.push(tc.items.map(function(i){return i.str}).join(' ').replace(/\s+/g,' '));
+                p++; return pagina();
+              });
+          }
+          return pagina().then(function(){ return testi.join('\n') });
+        })
+        .then(function(testo){
+          var pezzi=[];
+          for(var i=0;i<testo.length;i+=3000) pezzi.push(testo.slice(i,i+3000));
+          pezzi=pezzi.slice(0,12);
+          var idx=0;
+          function passo(){
+            if(idx>=pezzi.length) return Promise.resolve();
+            $('#st',el).innerHTML='<span class="busy"></span> il modello legge il blocco '+(idx+1)+' di '+pezzi.length;
+            return iaChiedi(
+              'Sei un assistente che struttura regole di giochi di ruolo. Rispondi SOLO con un array JSON, '+
+              'senza testo intorno. Ogni elemento: {"nome":"","tipo":"incantesimo|abilita|regola|oggetto",'+
+              '"liv":numero o null,"testo":"riassunto in italiano di due frasi"}. '+
+              'Se il brano non contiene voci riconoscibili rispondi [].',
+              'Estrai le voci da questo brano di manuale:\n\n'+pezzi[idx], 900)
+            .then(function(r){
+              try{
+                var arr=jsonDaTesto(r);
+                if(Array.isArray(arr)) arr.forEach(function(x){
+                  if(x&&x.nome&&x.testo) trovate.push(x) });
+              }catch(e){}
+              idx++;
+              $('#ris',el).innerHTML=trovate.map(function(x,i){
+                return '<div class="line"><span class="grow">'+esc(x.nome)+'</span>'+
+                  '<span class="pill">'+esc(x.tipo||'regola')+'</span>'+
+                  '<button class="btn sm danger" data-scarta="'+i+'">✕</button></div>'}).join('');
+              return passo();
+            });
+          }
+          return passo();
+        })
+        .then(function(){
+          if(!trovate.length){ $('#st',el).textContent='Non ho trovato voci riconoscibili.'; return }
+          S.compUser=S.compUser||{};
+          S.compUser[target]=(S.compUser[target]||[]).concat(trovate);
+          return salvaCompUser(target).then(function(){
+            $('#st',el).textContent=trovate.length+' voci aggiunte al compendio di '+SISTEMI[target].n+
+              '. Rileggile: il modello sbaglia.';
+            render();
+          });
+        })
+        .catch(function(e){ $('#st',el).textContent='Non ci sono riuscito: '+e.message });
+      };
+      el.addEventListener('click',function(ev){
+        var b=ev.target.closest('[data-scarta]'); if(!b) return;
+      });
+    });
+  });
+}
+
+</script>
+<script>
+"use strict";
+/* ==========================================================================
+   Sistemi costruiti da te: uno schema descrive sezioni e campi, e l'app
+   disegna la scheda. Gli schemi si generano anche dal PDF di una scheda.
+   ========================================================================== */
+function caricaSchemiUser(){
+  return DB.list('schemi').then(function(ps){
+    return Promise.all(ps.map(function(p){return DB.readJSON(p)}));
+  }).then(function(all){
+    S.schemiUser=all.filter(Boolean);
+    S.schemiUser.forEach(function(sc){
+      SISTEMI[sc.id]={n:sc.name,fam:'custom',schema:sc};
+    });
+  }).catch(function(){ S.schemiUser=[] });
+}
+function salvaSchemaUser(sc){
+  if(!sc||!sc.id) return Promise.resolve();
+  S.schemiUser=(S.schemiUser||[]).filter(function(x){return x.id!==sc.id}).concat([sc]);
+  SISTEMI[sc.id]={n:sc.name,fam:'custom',schema:sc};
+  return DB.writeJSON('schemi/'+sc.id+'.json',sc);
+}
+function sheetCustom(pg){
+  var sc=(SISTEMI[pg.sys]||{}).schema;
+  if(!sc) return slab('<p class="faint">Lo schema di questa scheda non è più disponibile.</p>');
+  var v=pg.values;
+  return (sc.sections||[]).map(function(s){
+    var campi=(s.fields||[]).map(function(f){ return campoCustom(f,v) }).join('');
+    var inner = (s.layout==='stack'||!s.layout) ? campi
+      : '<div class="grid '+(s.layout==='g3'?'g3':'g2')+'">'+campi+'</div>';
+    return slab(sec(s.title||'Sezione',inner));
+  }).join('');
+}
+function campoCustom(f,v){
+  var val=v[f.id];
+  switch(f.type){
+    case 'stat':{
+      var m=Math.floor((Number(val||10)-10)/2);
+      return '<div class="stat"><div class="lab">'+esc(f.label)+'</div>'+
+        '<input type="number" inputmode="numeric" data-v="'+esc(f.id)+'" value="'+(val==null?10:val)+'">'+
+        '<button class="mod metal" data-roll="1d20'+(m>=0?'+':'')+m+'" data-rl="'+esc(f.label)+'">'+
+        (m>=0?'+':'')+m+'</button></div>';
+    }
+    case 'tracker':{
+      var t=val||{cur:0,max:0};
+      return '<div class="fld trk"><div class="lab">'+esc(f.label)+'</div>'+
+        '<div class="row" style="gap:6px"><input type="number" inputmode="numeric" data-trc="'+esc(f.id)+'" value="'+(t.cur||0)+
+        '" style="text-align:center;font-family:var(--mono);font-weight:700"><span class="faint">/</span>'+
+        '<input type="number" inputmode="numeric" data-trm="'+esc(f.id)+'" value="'+(t.max||0)+
+        '" style="width:70px;text-align:center;font-family:var(--mono)"></div></div>';
+    }
+    case 'check':
+      return '<label class="fld row" style="gap:9px"><input type="checkbox" data-v="'+esc(f.id)+'"'+
+        (val?' checked':'')+' style="width:20px;height:20px;flex:none"><span class="grow">'+esc(f.label)+'</span></label>';
+    case 'longtext':
+      return '<div class="fld"><span class="lab">'+esc(f.label)+'</span>'+
+        '<textarea data-v="'+esc(f.id)+'" rows="4">'+esc(val||'')+'</textarea></div>';
+    case 'number':
+      return '<div class="fld"><span class="lab">'+esc(f.label)+'</span>'+
+        '<input type="number" inputmode="numeric" data-v="'+esc(f.id)+'" value="'+(val==null?0:val)+'"></div>';
+    case 'lista':
+      return '<div class="fld"><div class="lab">'+esc(f.label)+'</div>'+
+        listaEditabile(f.id,val||[],[['n','Voce'],['t','Nota']],null)+'</div>';
+    case 'dadi':
+      return '<div class="line"><button class="v" data-roll="'+esc(f.dado||'1d6')+'" data-rl="'+esc(f.label)+'">'+
+        esc(f.dado||'1d6')+'</button><span class="grow">'+esc(f.label)+'</span></div>';
+    default:
+      return '<div class="fld"><span class="lab">'+esc(f.label)+'</span>'+
+        '<input data-v="'+esc(f.id)+'" value="'+esc(val==null?'':val)+'"></div>';
+  }
+}
+/* ------------------- generazione dello schema da una scheda ------------- */
+ACT.generaScheda=function(){
+  if(!modoStudio()) return toast('Funzione da computer');
+  if(!IA.engine) { toast('Carica prima il modello'); return ACT.iaPannello() }
+  pickFile('application/pdf,image/*').then(function(fs){
+    if(!fs[0]) return;
+    var f=fs[0];
+    var m=modal('<h2 style="font-size:19px">Ricostruisco la scheda</h2>'+
+      '<label style="display:block;margin:11px 0"><span class="lab">Nome del gioco</span>'+
+      '<input id="gn" placeholder="Per esempio Brancalonia"></label>'+
+      '<div id="gs" class="faint" style="margin-bottom:10px">Pronto.</div>'+
+      '<pre id="gp" style="max-height:34vh;overflow:auto;font-family:var(--mono);font-size:11px;'+
+      'white-space:pre-wrap;color:var(--ink-dim)"></pre>'+
+      '<div class="row" style="margin-top:12px"><button class="btn grow" data-close>Chiudi</button>'+
+      '<button class="mbtn metal grow" id="gg"><span>Genera</span></button></div>',
+    function(el,close){
+      $('#gg',el).onclick=function(){
+        var nome=$('#gn',el).value.trim()||'Gioco senza nome';
+        $('#gs',el).innerHTML='<span class="busy"></span> leggo il documento…';
+        var testo='';
+        loadPdfJs().then(function(){ return f.arrayBuffer() })
+        .then(function(buf){
+          if(f.type!=='application/pdf') throw new Error('Per ora leggo solo PDF con testo.');
+          return window.pdfjsLib.getDocument({data:buf}).promise;
+        }).then(function(pdf){
+          var n=Math.min(pdf.numPages,4), p=1;
+          function pagina(){
+            if(p>n) return Promise.resolve();
+            return pdf.getPage(p).then(function(x){ return x.getTextContent() }).then(function(tc){
+              testo+=' '+tc.items.map(function(i){return i.str}).join(' ');
+              p++; return pagina();
+            });
+          }
+          return pagina();
+        }).then(function(){
+          $('#gs',el).innerHTML='<span class="busy"></span> il modello ricostruisce i campi…';
+          return iaChiedi(
+            'Sei un progettista di schede per giochi di ruolo. Rispondi SOLO con JSON valido, senza testo intorno. '+
+            'Struttura: {"name":"","sections":[{"title":"","layout":"g2|g3|stack",'+
+            '"fields":[{"id":"minuscolo_senza_spazi","label":"","type":"text|number|stat|tracker|check|longtext|lista|dadi"}]}]}. '+
+            'Usa stat per caratteristiche con modificatore, tracker per coppie attuale/massimo, '+
+            'lista per tabelle, dadi per tiri fissi. Etichette in italiano.',
+            'Ricostruisci come scheda digitale questa scheda cartacea:\n\n'+testo.slice(0,5000), 1400);
+        }).then(function(r){
+          $('#gp',el).textContent=r.slice(0,3000);
+          var sc=jsonDaTesto(r);
+          sc.id='sys_'+Math.random().toString(36).slice(2,8);
+          sc.name=nome; sc.creato=nowISO();
+          if(!sc.sections||!sc.sections.length) throw new Error('Nessuna sezione riconosciuta.');
+          return salvaSchemaUser(sc).then(function(){
+            $('#gs',el).textContent='Fatto: '+sc.sections.length+' sezioni, '+
+              sc.sections.reduce(function(n,s){return n+(s.fields||[]).length},0)+' campi. '+
+              'Ora compare fra i sistemi quando crei un personaggio.';
+            render();
+          });
+        }).catch(function(e){ $('#gs',el).textContent='Non ci sono riuscito: '+e.message });
+      };
+    });
+  });
+};
+ACT.schemiUser=function(){
+  var l=S.schemiUser||[];
+  modal('<h2 style="font-size:19px">Schede costruite da te</h2>'+
+    '<div style="margin:11px 0">'+(l.length?l.map(function(sc,i){
+      return '<div class="line"><span class="grow">'+esc(sc.name)+
+        '<span class="faint" style="font-size:11px"> · '+(sc.sections||[]).length+' sezioni</span></span>'+
+        '<button class="btn sm" data-scexp="'+i+'">esporta</button>'+
+        '<button class="btn sm danger" data-scdel="'+i+'">✕</button></div>'}).join('')
+      :'<p class="faint">Nessuna. Sul computer puoi generarne una dal PDF di una scheda.</p>')+'</div>'+
+    (modoStudio()?'<button class="mbtn metal" style="width:100%;margin-bottom:9px" data-act="generaScheda">'+
+      '<span>Genera da una scheda in PDF</span></button>':'')+
+    '<button class="btn" style="width:100%" data-close>Chiudi</button>',
+  function(el,close){
+    $$('[data-scexp]',el).forEach(function(b){ b.onclick=function(){
+      var sc=l[+b.dataset.scexp];
+      download(sc.name.replace(/\W+/g,'_')+'.json',new Blob([JSON.stringify(sc,null,1)],{type:'application/json'}));
+    }});
+    $$('[data-scdel]',el).forEach(function(b){ b.onclick=function(){
+      var sc=l[+b.dataset.scdel]; close();
+      ask('Elimina scheda','I personaggi creati con <b>'+esc(sc.name)+'</b> restano ma non si aprono più.','Elimina')
+      .then(function(y){ if(!y) return;
+        DB.remove('schemi/'+sc.id+'.json').then(function(){
+          delete SISTEMI[sc.id];
+          S.schemiUser=S.schemiUser.filter(function(x){return x.id!==sc.id});
+          render();
+        });
+      });
+    }});
+  });
+};
+
+</script>
+<script>
+"use strict";
+/* ==========================================================================
+   Pacchetti di contenuti: quello che prepari sul computer arriva al tablet,
+   copiando un file oppure scaricandolo da un indirizzo.
+   ========================================================================== */
+function pacchettoCorrente(){
+  return {
+    tipo:'tavolo-contenuti', versione:1, generato:nowISO(),
+    da:PIATT.nome,
+    compendio:S.compUser||{},
+    sistemi:(S.schemiUser||[]),
+    incantesimi:(S.cfg.incantesimiUser||[])
+  };
+}
+function firmaPacchetto(p){
+  var n=0;
+  Object.keys(p.compendio||{}).forEach(function(k){ n+=(p.compendio[k]||[]).length });
+  return n+' voci · '+((p.sistemi||[]).length)+' schede · '+new Date(p.generato).toLocaleString('it-IT');
+}
+function applicaPacchetto(p){
+  if(!p||p.tipo!=='tavolo-contenuti') return Promise.reject(new Error('Non è un pacchetto di Tavolo.'));
+  S.compUser=S.compUser||{};
+  var jobs=[];
+  Object.keys(p.compendio||{}).forEach(function(sys){
+    var esistenti={}; (S.compUser[sys]||[]).forEach(function(x){ esistenti[x.nome]=1 });
+    var nuove=(p.compendio[sys]||[]).filter(function(x){ return !esistenti[x.nome] });
+    S.compUser[sys]=(S.compUser[sys]||[]).concat(nuove);
+    jobs.push(salvaCompUser(sys));
+  });
+  (p.sistemi||[]).forEach(function(sc){ jobs.push(salvaSchemaUser(sc)) });
+  S.cfg.ultimoPacchetto={quando:nowISO(),firma:firmaPacchetto(p)};
+  jobs.push(saveCfg());
+  return Promise.all(jobs).then(function(){
+    return caricaCompUser();
+  }).then(caricaSchemiUser);
+}
+ACT.esportaPacchetto=function(){
+  var p=pacchettoCorrente();
+  download('tavolo-contenuti-'+new Date().toISOString().slice(0,10)+'.json',
+    new Blob([JSON.stringify(p,null,1)],{type:'application/json'}));
+  toast(firmaPacchetto(p));
+};
+ACT.importaPacchetto=function(){
+  pickFile('application/json').then(function(fs){
+    if(!fs[0]) return;
+    return fs[0].text().then(function(t){
+      var p=JSON.parse(t);
+      return ask('Aggiorna i contenuti',firmaPacchetto(p)+
+        '<br><br>Le voci che hai già non vengono duplicate.','Aggiorna').then(function(y){
+        if(!y) return;
+        return applicaPacchetto(p).then(function(){ render(); toast('Contenuti aggiornati') });
+      });
+    });
+  }).catch(function(e){ toast('File non valido') });
+};
+/* ---------------------- sincronizzazione da un indirizzo ---------------- */
+ACT.sincro=function(){
+  modal('<h2 style="font-size:19px">Sincronizzazione</h2>'+
+    '<p class="faint" style="margin:9px 0;line-height:1.6">Metti il pacchetto in un posto raggiungibile dalla rete '+
+    'e incolla qui il suo indirizzo. Il tablet lo controlla all\u2019avvio e ti avvisa se è cambiato.</p>'+
+    '<label style="display:block;margin-bottom:11px"><span class="lab">Indirizzo del pacchetto</span>'+
+    '<input id="su" value="'+esc(S.cfg.sincroUrl||'')+'" placeholder="https://raw.githubusercontent.com/tuonome/tavolo/main/contenuti.json"></label>'+
+    '<label class="row" style="margin-bottom:12px;gap:9px"><input type="checkbox" id="sa" '+
+    (S.cfg.sincroAuto?'checked':'')+' style="width:20px;height:20px;flex:none">'+
+    '<span class="grow faint" style="font-size:12.5px">Controlla a ogni avvio</span></label>'+
+    (S.cfg.ultimoPacchetto?'<p class="faint" style="margin:0 0 12px">Ultimo aggiornamento: '+
+      esc(S.cfg.ultimoPacchetto.firma)+'</p>':'')+
+    '<div class="row" style="gap:7px"><button class="btn grow" data-close>Chiudi</button>'+
+    '<button class="btn grow" id="sv">Salva</button>'+
+    '<button class="mbtn metal grow" id="sn"><span>Scarica ora</span></button></div>'+
+    '<p class="faint" style="margin:12px 0 0;line-height:1.6">Se usi GitHub: metti <b style="color:var(--ink)">contenuti.json</b> '+
+    'nello stesso repository dell\u2019app e usa l\u2019indirizzo <b style="color:var(--ink)">raw.githubusercontent.com</b>. '+
+    'Va bene anche un link condiviso di iCloud Drive, Dropbox o Drive, purché scarichi il file diretto.</p>',
+  function(el,close){
+    $('#sv',el).onclick=function(){
+      S.cfg.sincroUrl=$('#su',el).value.trim();
+      S.cfg.sincroAuto=$('#sa',el).checked;
+      saveCfg(); close(); toast('Impostazione salvata');
+    };
+    $('#sn',el).onclick=function(){
+      S.cfg.sincroUrl=$('#su',el).value.trim();
+      S.cfg.sincroAuto=$('#sa',el).checked; saveCfg();
+      close(); scaricaPacchetto(true);
+    };
+  });
+};
+function scaricaPacchetto(manuale){
+  var url=S.cfg.sincroUrl;
+  if(!url) return manuale&&toast('Nessun indirizzo impostato');
+  var m=manuale?modal('<h2 style="font-size:19px">Scarico</h2>'+
+    '<p class="faint" style="margin:9px 0"><span class="busy"></span> controllo l\u2019indirizzo…</p>'):null;
+  return fetch(url,{cache:'no-store'}).then(function(r){
+    if(!r.ok) throw new Error('il server ha risposto '+r.status);
+    return r.json();
+  }).then(function(p){
+    if(m) m.close();
+    if(S.cfg.ultimoPacchetto&&S.cfg.ultimoPacchetto.firma===firmaPacchetto(p)){
+      if(manuale) toast('Sei già aggiornato');
+      return;
+    }
+    return ask('Contenuti disponibili',firmaPacchetto(p),'Aggiorna').then(function(y){
+      if(!y) return;
+      return applicaPacchetto(p).then(function(){ render(); toast('Contenuti aggiornati') });
+    });
+  }).catch(function(e){
+    if(m) m.close();
+    if(manuale) modal('<h2 style="font-size:19px">Non ci sono riuscito</h2>'+
+      '<p class="faint" style="margin:9px 0 14px;line-height:1.6">'+esc(e.message)+
+      '<br><br>Se il file sta su un altro sito, quel sito deve permettere il download da pagine esterne. '+
+      'GitHub lo permette, molti servizi di condivisione no: in quel caso copia il file a mano.</p>'+
+      '<button class="btn" style="width:100%" data-close>Chiudi</button>');
+  });
+}
+
+</script>
+<script>
+"use strict";
 /* ============ collegamenti fra le parti aggiunte e il nucleo dell'app ==== */
 S.compSez='inc';
+S.compUser={};
+/* fondo i blocchi di dati caricati separatamente */
+if(typeof CLASSI_EXTRA!=='undefined')
+  Object.keys(CLASSI_EXTRA).forEach(function(k){ CLASSI[k]=CLASSI_EXTRA[k] });
+if(typeof SRD_INC2!=='undefined') SRD_INC=SRD_INC.concat(SRD_INC2);
+/* la scheda cartacea si adatta alla larghezza dopo ogni disegno */
+(function(){
+  var old=render;
+  render=function(){ old.apply(null,arguments);
+    if(typeof scalaCarta==='function') setTimeout(scalaCarta,16) };
+})();
 document.addEventListener('click',function(e){
   var t=e.target.closest('[data-opensess],[data-delsess],[data-stato],[data-offstato],[data-cs],'+
     '[data-addinc],[data-addarma],[data-sec]');
@@ -2850,6 +3757,10 @@ document.addEventListener('input',function(e){
     t++;
     if(S.pgs!==undefined&&DB.store){
       clearInterval(iv);
+      if(typeof caricaCompUser==='function') caricaCompUser().then(function(){ if(S.tab==='compendio') render() });
+      if(typeof caricaSchemiUser==='function') caricaSchemiUser().then(function(){ render() });
+      if(S.cfg.sincroAuto&&S.cfg.sincroUrl&&typeof scaricaPacchetto==='function')
+        setTimeout(function(){ scaricaPacchetto(false) },1800);
       caricaSessioni().then(function(all){
         var aperte=all.filter(function(x){return x.aperta});
         if(aperte.length) S.sess=aperte[0];
