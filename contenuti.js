@@ -11,14 +11,16 @@ function pacchettoCorrente(){
     sistemi:(S.schemiUser||[]),
     incantesimi:(S.cfg.incantesimiUser||[]),
     sottoclassi:(S.sottoUser||{}),
-    bozze:(S.sottoBozze||{})
+    bozze:(S.sottoBozze||{}),
+    profili:(S.profili||{})
   };
 }
 function firmaPacchetto(p){
   var n=0;
   Object.keys(p.compendio||{}).forEach(function(k){ n+=(p.compendio[k]||[]).length });
   return n+' voci · '+((p.sistemi||[]).length)+' schede · '+
-    Object.keys(p.sottoclassi||{}).length+' sottoclassi · '+new Date(p.generato).toLocaleString('it-IT');
+    Object.keys(p.sottoclassi||{}).length+' sottoclassi · '+
+    Object.keys(p.profili||{}).length+' profili · '+new Date(p.generato).toLocaleString('it-IT');
 }
 function applicaPacchetto(p){
   if(!p||p.tipo!=='tavolo-contenuti') return Promise.reject(new Error('Non è un pacchetto di Tavolo.'));
@@ -31,6 +33,8 @@ function applicaPacchetto(p){
     jobs.push(salvaCompUser(sys));
   });
   (p.sistemi||[]).forEach(function(sc){ jobs.push(salvaSchemaUser(sc)) });
+  if(p.profili&&typeof salvaProfilo==='function')
+    Object.keys(p.profili).forEach(function(k){ jobs.push(salvaProfilo(p.profili[k])) });
   if(p.sottoclassi&&typeof salvaSottoUser==='function'){
     S.sottoUser=S.sottoUser||{};
     S.sottoBozze=S.sottoBozze||{};

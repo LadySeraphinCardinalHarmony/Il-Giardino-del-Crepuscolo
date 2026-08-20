@@ -418,8 +418,10 @@ function nuovoPG(sys,nome){
        forza:10,des:10,cos:10,int:10,sag:10,car:10,abil:{},ts:{},pf:{cur:null},
        ca:10,vel:9,pfTemp:0,ispirazioneUsi:0,slotUsati:{},atk:[],equip:'',incant:[]};
   }else if(SISTEMI[sys].fam==='fu'){
-    v={liv:5,classi:[{n:'Oratore',liv:5}],destrezza:8,intuito:8,vigore:8,volonta:8,
-       pvCur:null,pmCur:null,piCur:6,fabula:3,status:{},legami:[],abilita:[],equip:''};
+    v={liv:5,classi:[],destrezza:8,intuito:8,vigore:8,volonta:8,
+       identita:'',tema:'',origine:'',pvCur:null,pmCur:null,piCur:null,
+       fabula:3,zenit:0,px:0,status:{},legami:[],abilita:[],orologi:[],equip:[],
+       difMod:0,difMMod:0,iniMod:0,pvExtra:0,pmExtra:0,piExtra:0};
   }else if(SISTEMI[sys].fam==='s7'){
     v={nazione:'Montaigne',concetto:'',tratti:{},abil:{},eroismo:3,ferite:0,drammatiche:0,
        vantaggi:[],storie:[],arcani:{virtu:'',ossessione:''}};
@@ -1243,6 +1245,7 @@ function viewAspetto(){
     '<button class="btn" data-act="importaPacchetto">Importa pacchetto</button>'+
     '<button class="btn" data-act="sincro">Sincronizza</button>'+
     '<button class="btn" data-act="schemiUser">Schede costruite</button>'+
+    (modoStudio()?'<button class="mbtn metal" data-act="imparaGioco"><span>Impara un gioco da un PDF</span></button>':'')+
     (modoStudio()?'<button class="btn" data-act="iaPannello">Modello locale</button>':'')+
     '</div>'+
     (S.cfg.ultimoPacchetto?'<p class="faint" style="margin:10px 0 0">Ultimo aggiornamento: '+
@@ -1434,7 +1437,9 @@ var ACT={
       '<label><span class="lab">Nome</span><input id="kn" placeholder="Goblin"></label>'+
       '<label><span class="lab">Quanti</span><input id="kq" type="number" value="1"></label>'+
       '<label><span class="lab">Punti ferita</span><input id="kh" type="number"></label>'+
-      '<label><span class="lab">Bonus iniziativa</span><input id="kb" type="number" value="0"></label></div>'+
+      '<label><span class="lab">Bonus iniziativa</span><input id="kb" type="number" value="0"></label>'+
+      '<label style="grid-column:1/-1"><span class="lab">Da che parte sta</span><select id="kl">'+
+      '<option value="nemico">Avversario</option><option value="eroe">Eroe o alleato</option></select></label></div>'+
       '<div class="row"><button class="btn grow" data-close>Chiudi</button>'+
       '<button class="mbtn metal grow" id="okk"><span>Aggiungi</span></button></div>',
     function(el,close){
@@ -1442,15 +1447,21 @@ var ACT={
         DB.readJSON(P.pg(b.dataset.addpg)).then(function(pg){
           var pf=null,ini=0;
           if(SISTEMI[pg.sys].fam==='dnd'){ var A=autoDnD(pg); pf=pg.values.pf.cur==null?A.pfMax:pg.values.pf.cur; ini=A.iniz }
-          if(SISTEMI[pg.sys].fam==='fu'){ var F=autoFU(pg); pf=pg.values.pvCur==null?F.pv:pg.values.pvCur }
-          S.sess.k.push({id:uid('k'),n:pg.name,pf:pf,ini:ini,init:null});
+          var pfmax=null;
+          if(SISTEMI[pg.sys].fam==='fu'){ var F=autoFU(pg); pfmax=F.pv;
+            pf=pg.values.pvCur==null?F.pv:pg.values.pvCur }
+          if(SISTEMI[pg.sys].fam==='dnd'){ pfmax=autoDnD(pg).pfMax; if(pf==null) pf=pfmax }
+          S.sess.k.push({id:uid('k'),n:pg.name,pf:pf,pfmax:pfmax,lato:'eroe',
+            stati:[],agito:false,ini:ini,init:null});
           saveSess(); close(); render();
         });
       }});
       $('#okk',el).onclick=function(){
         var n=$('#kn',el).value.trim()||'Nemico', q=clamp(Number($('#kq',el).value||1),1,30);
+        var lato=$('#kl',el)?$('#kl',el).value:'nemico';
+        var pfIn=$('#kh',el).value===''?null:Number($('#kh',el).value);
         for(var i=0;i<q;i++) S.sess.k.push({id:uid('k'),n:q>1?n+' '+(i+1):n,
-          pf:$('#kh',el).value===''?null:Number($('#kh',el).value),
+          pf:pfIn,pfmax:pfIn,lato:lato,stati:[],agito:false,
           ini:Number($('#kb',el).value||0),init:null});
         saveSess(); close(); render();
       };

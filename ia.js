@@ -31,10 +31,21 @@ function iaChiedi(sistema,utente,maxTok){
 }
 function jsonDaTesto(t){
   var s=String(t).replace(/```json|```/g,'').trim();
-  var a=s.indexOf('['), b=s.lastIndexOf(']');
-  if(a<0){ a=s.indexOf('{'); b=s.lastIndexOf('}') }
-  if(a<0) throw new Error('Il modello non ha risposto in JSON.');
-  return JSON.parse(s.slice(a,b+1));
+  var i=s.search(/[\[{]/);
+  if(i<0) throw new Error('Il modello non ha risposto in JSON.');
+  /* conta le parentesi per prendere la struttura intera, non la prima annidata */
+  var apre=s.charAt(i), chiude=apre==='['?']':'}', liv=0, fine=-1, str=false, esc2=false;
+  for(var k=i;k<s.length;k++){
+    var c=s.charAt(k);
+    if(esc2){ esc2=false; continue }
+    if(c==='\\'){ esc2=true; continue }
+    if(c==='"'){ str=!str; continue }
+    if(str) continue;
+    if(c===apre) liv++;
+    else if(c===chiude){ liv--; if(liv===0){ fine=k; break } }
+  }
+  if(fine<0) fine=s.lastIndexOf(chiude);
+  return JSON.parse(s.slice(i,fine+1));
 }
 /* voci ricavate dai tuoi PDF: restano nella tua cartella, divise per gioco */
 function caricaCompUser(){

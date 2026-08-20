@@ -87,6 +87,7 @@ document.addEventListener('input',function(e){
       if(typeof caricaCompUser==='function') caricaCompUser().then(function(){ if(S.tab==='compendio') render() });
       if(typeof caricaSchemiUser==='function') caricaSchemiUser().then(function(){ render() });
       if(typeof caricaSottoUser==='function') caricaSottoUser().then(function(){ if(S.tab==='scheda') render() });
+      if(typeof caricaProfili==='function') caricaProfili().then(function(){ if(S.tab==='sessione') render() });
       if(S.cfg.sincroAuto&&S.cfg.sincroUrl&&typeof scaricaPacchetto==='function')
         setTimeout(function(){ scaricaPacchetto(false) },1800);
       caricaSessioni().then(function(all){

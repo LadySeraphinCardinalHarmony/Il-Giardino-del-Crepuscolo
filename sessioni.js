@@ -32,7 +32,10 @@ function viewSess(){
       return '<button class="pill" data-offstato="'+esc(k)+'" style="box-shadow:inset 0 0 0 2px var(--m2);color:var(--ink)">● '+
         esc(k.split(':')[1]||k)+'</button>'}).join('')+'</div>',{plain:true});
 
-  out+=slab('<div class="row" style="margin-bottom:9px"><div class="eyebrow grow">Al tavolo</div>'+
+  var PROF=(typeof profiloDi==='function')?profiloDi(s.sys):null;
+  if(typeof fuSess==='function'&&fuSess()){ out+=fuPannelloConflitto() }
+  else if(PROF){ out+=pannelloProfilo(PROF) }
+  else out+=slab('<div class="row" style="margin-bottom:9px"><div class="eyebrow grow">Al tavolo</div>'+
     '<button class="btn sm" data-act="tiraini">Iniziativa</button>'+
     '<button class="btn sm" data-act="aggcomb">＋</button></div>'+
     (s.k.length?s.k.slice().sort(function(a,b){return (b.init||0)-(a.init||0)}).map(function(k){
@@ -147,6 +150,27 @@ ACT.notadiario=function(){
   });
 };
 ACT.stati=function(){
+  if(typeof fuSess==='function'&&fuSess()&&S.pg&&SISTEMI[S.pg.sys].fam==='fu'){
+    var v=S.pg.values;
+    return modal('<h2 style="font-size:19px">Stati</h2>'+
+      '<p class="faint" style="margin:8px 0 11px">Ogni stato abbassa di una taglia le caratteristiche indicate. '+
+      'Difese e Test si aggiornano subito.</p>'+
+      '<div class="row wrap">'+FU_STATI.map(function(st){
+        var on=v.status&&v.status[st[0]];
+        return '<button class="btn sm" data-status="'+esc(st[0])+'"'+
+          (on?' style="box-shadow:inset 0 0 0 2px #C2506A;color:#C2506A"':'')+'>'+
+          (on?'● ':'○ ')+esc(st[0])+'</button>'}).join('')+'</div>'+
+      '<button class="btn" style="width:100%;margin-top:12px" data-close>Fatto</button>');
+  }
+  var PS=(S.sess&&typeof profiloDi==='function')?profiloDi(S.sess.sys):null;
+  if(PS&&PS.stati&&PS.stati.length){
+    return modal('<h2 style="font-size:19px">Stati</h2>'+
+      '<div style="margin:11px 0;max-height:56vh;overflow-y:auto">'+PS.stati.map(function(st,i){
+        return '<div class="line" data-det="pz'+i+'"><span class="grow">'+esc(st[0])+'</span>'+
+          '<span class="pill">leggi</span></div>'+
+          '<div class="det" id="pz'+i+'"><div class="body">'+esc(st[1]||'')+'</div></div>'}).join('')+'</div>'+
+      '<button class="btn" style="width:100%" data-close>Fatto</button>');
+  }
   var pg=S.pg, cl=pg&&SISTEMI[pg.sys].fam==='dnd'?pg.values.classe:null;
   var list=(cl&&CLASSE_STATI[cl])||[];
   var gen=[{id:'conc',n:'Concentrazione',t:'Se subisci danni, tiro salvezza su Costituzione con CD pari a 10 oppure metà dei danni, il valore più alto.'}];
@@ -163,9 +187,12 @@ ACT.stati=function(){
     '<button class="btn" style="width:100%;margin-top:12px" data-close>Fatto</button>');
 };
 ACT.azione=function(){
+  var PR=(S.sess&&typeof profiloDi==='function')?profiloDi(S.sess.sys):null;
+  var lista = (typeof fuSess==='function'&&fuSess()&&typeof FU_AZIONI!=='undefined') ? FU_AZIONI
+            : (PR&&PR.azioni&&PR.azioni.length) ? PR.azioni : SRD_AZIONI;
   modal('<h2 style="font-size:19px">Azioni</h2>'+
     '<p class="faint" style="margin:7px 0 11px">Cosa puoi fare nel tuo turno, dal regolamento.</p>'+
-    SRD_AZIONI.map(function(a,i){
+    lista.map(function(a,i){
       return '<div class="line" data-det="az'+i+'"><span class="grow">'+esc(a[0])+'</span>'+
         '<span class="pill">'+esc(a[1])+'</span></div>'+
         '<div class="det" id="az'+i+'"><div class="body">'+esc(a[2])+'</div></div>'}).join('')+
@@ -175,8 +202,11 @@ ACT.azione=function(){
 /* ------------------------------------------------------------- attacco */
 ACT.attacca=function(){
   var pg=S.pg;
+  if(pg&&SISTEMI[pg.sys]&&SISTEMI[pg.sys].fam==='fu'&&typeof attaccoFU==='function') return attaccoFU();
+  var PA=(S.sess&&typeof profiloDi==='function')?profiloDi(S.sess.sys):null;
+  if(PA&&typeof attaccoProfilo==='function') return attaccoProfilo(PA);
   if(!pg||SISTEMI[pg.sys].fam!=='dnd')
-    return toast('Apri prima una scheda di D&D');
+    return toast('Apri prima una scheda di D&D o di Fabula Ultima');
   modal('<h2 style="font-size:19px">Attacco</h2>'+
     '<p class="faint" style="margin:7px 0 12px">Con cosa colpisci?</p>'+
     '<div class="row"><button class="mbtn metal grow" id="ba"><span>Con un\u2019arma</span></button>'+
